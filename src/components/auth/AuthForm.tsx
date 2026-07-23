@@ -17,7 +17,7 @@ import {
 
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Buttom";
-import { loginSchema, registerSchema } from "../../validators/auth/auth";
+import { loginSchema, registerSchema } from "@/validators/auth/auth";
 
 export function AuthForm() {
   const router = useRouter();
@@ -96,6 +96,11 @@ export function AuthForm() {
       if (!response.ok) {
         setErrorMessage(data.message || "Login failed");
         return;
+      }
+
+      // Save JWT token in localStorage for authenticated API requests
+      if (data.token) {
+        localStorage.setItem("token", data.token);
       }
 
       const userRole = data.user?.role || data.role || "user";
