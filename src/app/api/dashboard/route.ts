@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Booking from '@/models/Booking';
-import '@/models/Court'; // <-- Add this line to register the Court schema for populate
+import '@/models/Court'; 
 
 export async function GET() {
   try {
