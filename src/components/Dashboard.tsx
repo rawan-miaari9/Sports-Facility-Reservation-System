@@ -152,17 +152,6 @@ export default function Dashboard({
           </p>
         </div>
 
-        <div className="flex items-center gap-4 bg-surface-container-low p-3 rounded-xl border border-outline-variant font-mono">
-          <div className="text-right">
-            <span className="block text-[9px] text-outline uppercase font-bold tracking-widest">Server UTC Time</span>
-            <span className="block text-sm font-bold text-primary">{tickerTime || '12:00:00 PM'}</span>
-          </div>
-          <div className="w-px h-6 bg-outline-variant" />
-          <div>
-            <span className="block text-[9px] text-outline uppercase font-bold tracking-widest">Date</span>
-            <span className="block text-sm font-bold text-on-surface">July 20, 2026</span>
-          </div>
-        </div>
       </header>
 
       {/* ATHLETE VIEW */}
