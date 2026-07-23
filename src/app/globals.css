@@ -4,6 +4,12 @@
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-display: "Montserrat", system-ui, -apple-system, sans-serif;
 
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Montserrat", system-ui, -apple-system, sans-serif;
+
   --color-primary: #003f87;
   --color-primary-container: #0056b3;
   --color-on-primary-container: #bbd0ff;
