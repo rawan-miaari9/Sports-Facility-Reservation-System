@@ -4,12 +4,6 @@
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-display: "Montserrat", system-ui, -apple-system, sans-serif;
 
-@import "tailwindcss";
-
-@theme {
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-display: "Montserrat", system-ui, -apple-system, sans-serif;
-
   --color-primary: #003f87;
   --color-primary-container: #0056b3;
   --color-on-primary-container: #bbd0ff;
@@ -32,7 +26,7 @@
   --color-outline-variant: #c2c6d4;
   --color-error: #ba1a1a;
   --color-error-container: #ffdad6;
-  
+
   --animate-bounce-subtle: bounce-subtle 3s ease-in-out infinite;
 }
 
@@ -78,4 +72,3 @@
 .zebra-stripe:nth-child(even) {
   background-color: #f2f3f9;
 }
-
