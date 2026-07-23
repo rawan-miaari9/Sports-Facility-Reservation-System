@@ -17,7 +17,7 @@ import {
 
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Buttom";
-import { loginSchema, registerSchema } from "../../validators/validations/auth";
+import { loginSchema, registerSchema } from "../../validators/auth/auth";
 
 export function AuthForm() {
   const router = useRouter();

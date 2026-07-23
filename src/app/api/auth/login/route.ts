@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/db/mongodb";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
-import { loginSchema } from "../../../../validators/validations/auth";
+import { loginSchema } from "../../../../validators/auth/auth";
 
 export async function POST(request: Request) {
   try {
