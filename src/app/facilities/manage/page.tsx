@@ -1,3 +1,6 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import ManageFacilityView from '@/components/ManageFacilityView';
 
 export default function ManageFacilityPage() {

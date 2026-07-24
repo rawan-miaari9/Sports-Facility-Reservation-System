@@ -8,23 +8,43 @@ import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const router = useRouter();
+  const [currentUser, setCurrentUser] = useState({
+    userId: '',
+    name: 'Loading...',
+    email: '',
+    role: 'Athlete'
+  });
   const [reservations, setReservations] = useState([]);
 
-  // Fetch reservations from the database API on load
   useEffect(() => {
-    async function loadReservations() {
+    async function fetchUserAndData() {
       try {
-        const res = await fetch('/api/reservations?userId=6a60df19c3d0da26c5506d8');
-        const json = await res.json();
-        if (json.success) {
-          setReservations(json.data);
+        const userRes = await fetch('/api/auth/currentUser');
+        const userJson = await userRes.json();
+
+        if (userJson.success && userJson.user) {
+          const loggedUser = userJson.user;
+          setCurrentUser(loggedUser);
+
+          // Fetch reservations using the dynamic user's ID
+          const resRes = await fetch(`/api/reservations?userId=${loggedUser.userId}`);
+          const resJson = await resRes.json();
+          
+          // 👀 ADD THE LOG HERE:
+          console.log("Dashboard reservations fetched:", resJson);
+
+          if (resJson.success) {
+            setReservations(resJson.data);
+          }
+        } else {
+          router.push('/auth');
         }
       } catch (err) {
-        console.error('Failed to fetch reservations:', err);
+        console.error('Failed to load dashboard session:', err);
       }
     }
-    loadReservations();
-  }, []);
+    fetchUserAndData();
+  }, [router]);
 
   const handleCancelReservation = async (id: string) => {
     try {
@@ -33,7 +53,6 @@ export default function DashboardPage() {
       });
       const json = await res.json();
       if (json.success) {
-        // Update local state to remove the cancelled reservation instantly
         setReservations(prev => prev.filter((r: any) => r.id !== id));
       }
     } catch (err) {
@@ -41,22 +60,13 @@ export default function DashboardPage() {
     }
   };
 
-  const currentUserObj = { 
-    userId: '6a60df19c3d0da26c5506d8', 
-    name: 'Rawan', 
-    email: 'rawan@athletichub.com',
-    role: 'Athlete' 
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Top Header with Profile Dropdown Menu */}
-      <Header currentUser={currentUserObj} />
+      <Header currentUser={currentUser} />
 
-      {/* Main Dashboard Content */}
       <main className="flex-1 overflow-y-auto">
         <Dashboard
-          currentUser={currentUserObj as any}
+          currentUser={currentUser as any}
           facilities={INITIAL_FACILITIES}
           reservations={reservations}
           onNavigate={(view) => {

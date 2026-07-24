@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Booking from '@/models/Booking';
+import mongoose from 'mongoose';
 
 export async function GET(request: Request) {
   try {
     await dbConnect();
-
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
@@ -13,18 +13,29 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 });
     }
 
-    // Fetch all confirmed bookings for this user from MongoDB
-    const bookings = await Booking.find({ userId, status: 'confirmed' });
+    // Build a query that matches either a string ID or an ObjectId
+    let userQuery;
+    try {
+      userQuery = {
+        $or: [
+          { userId: userId },
+          { userId: new mongoose.Types.ObjectId(userId) }
+        ],
+        status: 'confirmed'
+      };
+    } catch (e) {
+      userQuery = { userId: userId, status: 'confirmed' };
+    }
+
+    const bookings = await Booking.find(userQuery);
 
     let monthlyInvestment = 0;
     let hoursCompleted = 0;
     const confirmedSlotsCount = bookings.length;
 
     bookings.forEach((booking) => {
-      // Add up total price
       monthlyInvestment += booking.totalPrice || 0;
 
-      // Calculate hours from start time and end time (assuming HH:mm format)
       if (booking.startTime && booking.endTime) {
         const [startHour, startMin] = booking.startTime.split(':').map(Number);
         const [endHour, endMin] = booking.endTime.split(':').map(Number);
@@ -38,7 +49,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       monthlyInvestment,
-      hoursCompleted: Math.round(hoursCompleted * 10) / 10, // round to 1 decimal place
+      hoursCompleted: Math.round(hoursCompleted * 10) / 10,
       confirmedSlotsCount,
     }, { status: 200 });
 
