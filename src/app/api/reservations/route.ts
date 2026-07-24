@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db'; 
+import dbConnect from '@/lib/db';
 import Booking from '@/models/Booking';
 import User from '@/models/User';
 import mongoose from 'mongoose';
@@ -24,9 +24,8 @@ export async function GET(request: Request) {
       }
     }
 
-    const bookings = await Booking.find(query).lean().sort({ bookingDate: 1 });
+    const bookings = await Booking.find(query).lean().sort({ date: -1 });
 
-    // Fetch user details to map names properly if missing
     const userIds = [...new Set(bookings.map((b: any) => b.userId).filter(Boolean))];
     const users = await User.find({ _id: { $in: userIds } }).lean();
     const userMap = new Map(users.map((u: any) => [u._id.toString(), u]));
@@ -40,17 +39,18 @@ export async function GET(request: Request) {
         userEmail: b.userEmail || matchedUser.email || 'rawan@gmail.com',
         facilityName: b.facilityName || 'Arena Court',
         facilityImage: b.facilityImage || 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5',
-        sport: b.sport || 'Tennis / Badminton',
-        date: b.bookingDate || b.date || '2026-07-25',
+        sport: b.sport || 'Soccer / Tennis',
+        date: b.date || b.bookingDate || '2026-07-28',
         timeSlot: b.timeSlot || (b.startTime && b.endTime ? `${b.startTime} - ${b.endTime}` : '16:00 - 18:00'),
-        price: b.totalPrice || b.price || 100,
-        status: b.status ? b.status.charAt(0).toUpperCase() + b.status.slice(1) : 'Confirmed',
+        price: b.price || b.totalPrice || 152,
+        status: b.status ? b.status.charAt(0).toUpperCase() + b.status.slice(1) : 'Pending',
         equipment: b.equipment || []
       };
     });
 
     return NextResponse.json({ success: true, data: formattedBookings }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('Error fetching reservations:', error);
+    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }

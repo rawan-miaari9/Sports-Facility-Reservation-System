@@ -180,7 +180,7 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
               id="settings-btn-save-profile"
             >
               <Save className="h-4.5 w-4.5" />
-              Synchronize Profile Details
+              Save Profile Details
             </button>
           </div>
 
