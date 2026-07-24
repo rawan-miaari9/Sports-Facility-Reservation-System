@@ -30,7 +30,8 @@ export default function ReservationsView({
   onDeleteReservation
 }: ReservationsViewProps) {
   const isAdmin = currentUser.role === 'Admin';
-
+  const userId = (currentUser as any).userId || (currentUser as any)._id || (currentUser as any).id;
+  const userEmail = currentUser.email;
   // Search & Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'All' | 'Confirmed' | 'Completed' | 'Cancelled'>('All');
@@ -39,14 +40,15 @@ export default function ReservationsView({
   const [selectedRes, setSelectedRes] = useState<Reservation | null>(null);
 
   // Filter reservations based on user role and filters
+  // Filter reservations based on user role and dynamic user info
   const userFilteredList = isAdmin 
-    ? reservations 
-    : reservations.filter(r => r.userEmail === currentUser.email);
+  ? reservations 
+  : reservations.filter((r: any) => r.userId === userId || r.userEmail === userEmail);
 
   const finalFilteredReservations = userFilteredList.filter(res => {
-    const matchesSearch = res.facilityName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          res.userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          res.id.toLowerCase().includes(searchTerm.toLowerCase());
+const matchesSearch = res.facilityName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                      res.userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                      res.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTab = activeTab === 'All' || res.status === activeTab;
     return matchesSearch && matchesTab;
   });

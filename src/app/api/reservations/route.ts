@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Booking from "@/models/Booking";
+import User from "@/models/User";
+import mongoose from "mongoose";
 
 export async function GET(request: Request) {
   try {
@@ -9,17 +11,28 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
-    const query = userId
-      ? {
+    let query = {};
+
+    if (userId) {
+      try {
+        query = {
+          bookingType: "registered",
+          $or: [
+            { userId },
+            { userId: new mongoose.Types.ObjectId(userId) },
+          ],
+        };
+      } catch {
+        query = {
           bookingType: "registered",
           userId,
-        }
-      : {};
+        };
+      }
+    }
 
     const bookings = await Booking.find(query)
       .sort({ date: 1 })
       .lean();
-
     return NextResponse.json(
       {
         success: true,
