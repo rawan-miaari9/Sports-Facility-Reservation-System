@@ -1,9 +1,8 @@
-// app/admin/dashboard/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import AdminMainDashboard from "@/components/admin/AdminMainDashboard"; // adjust path
+import AdminMainDashboard from "@/components/admin/AdminMainDashboard";
 import { Loader2 } from "lucide-react";
 
 export default function AdminDashboardPage() {

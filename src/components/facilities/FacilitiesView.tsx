@@ -95,7 +95,7 @@ export default function FacilitiesView({
   const getTodayString = () => new Date().toISOString().split('T')[0];
 
   const [facilities, setFacilities] = useState<Facility[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -120,18 +120,25 @@ export default function FacilitiesView({
   const [lastCreatedReservation, setLastCreatedReservation] = useState<Reservation | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     async function loadData() {
       try {
-        setIsLoading(true);
+        setIsFetching(true);
         const data = await fetchFacilities();
-        setFacilities(data);
+        if (isMounted) setFacilities(data || []);
       } catch (err) {
         console.error('Failed to load facilities:', err);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsFetching(false);
       }
     }
+
     loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -247,6 +254,7 @@ export default function FacilitiesView({
   return (
     <div className="flex-1 flex overflow-hidden bg-background relative h-full">
       <div className="flex-1 overflow-y-auto px-8 py-8 space-y-6 custom-scrollbar">
+        {/* Header renders instantly without waiting */}
         <header className="flex justify-between items-center">
           <h1 className="font-display font-black text-2xl text-on-surface">Arenas</h1>
           {isAdmin && onNavigateToManage && (
@@ -260,6 +268,7 @@ export default function FacilitiesView({
           )}
         </header>
 
+        {/* Filter Bar renders instantly without waiting */}
         <FacilityFilterBar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -278,10 +287,13 @@ export default function FacilitiesView({
           }}
         />
 
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center p-24 space-y-4">
-            <Loader2 className="h-10 w-10 text-primary animate-spin" />
-            <span className="text-xs font-mono font-bold text-outline">LOADING ARENAS...</span>
+        {/* Cards Grid */}
+        {isFetching && facilities.length === 0 ? (
+          /* Card Skeletons instead of full-screen loader */
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            {[1, 2, 3, 4, 5, 6].map((idx) => (
+              <div key={idx} className="h-72 bg-surface-variant/30 animate-pulse rounded-2xl border border-outline-variant/50" />
+            ))}
           </div>
         ) : filteredFacilities.length === 0 ? (
           <div className="bg-white border border-outline-variant p-16 rounded-2xl text-center">

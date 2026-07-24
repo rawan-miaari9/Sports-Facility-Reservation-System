@@ -1,8 +1,12 @@
 export interface User {
-  id: string;
+  id: string;               
+  _id?: string;            
   name: string;
   email: string;
-  role: 'admin' | 'user';
+  phone?: string;
+  dateOfBirth?: string;
+  role: 'admin' | 'user';  
+  createdAt?: string | Date;
 }
 
 export interface Facility {
