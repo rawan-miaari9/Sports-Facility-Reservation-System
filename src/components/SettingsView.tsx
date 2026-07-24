@@ -75,13 +75,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
   const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
 
   // Sync state whenever currentUser prop updates (e.g. after fresh DB fetch)
-  // Local profile states (fallback to empty string if loading)
-  const [name, setName] = useState(currentUser?.name || '');
-  const [email, setEmail] = useState(currentUser?.email || '');
-  const [phone, setPhone] = useState(currentUser?.phone || '');
-  const [dob, setDob] = useState(currentUser?.dateOfBirth || '');
-  
-  // Keep local state synchronized when currentUser loads or changes
   useEffect(() => {
     if (currentUser) {
       setName(currentUser.name || '');
@@ -460,8 +453,8 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
             </div>
 
             <div>
-              <span className="block font-display font-black text-base text-on-surface">{name || 'Loading...'}</span>
-              <span className="block text-xs text-outline font-mono mt-0.5">{email || 'Loading...'}</span>
+              <span className="block font-display font-black text-base text-on-surface">{name}</span>
+              <span className="block text-xs text-outline font-mono mt-0.5">{email}</span>
             </div>
 
             <div className="pt-4 border-t border-outline-variant/60 grid grid-cols-2 text-center text-xs gap-4 font-mono">

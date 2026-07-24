@@ -53,28 +53,9 @@ export async function POST(request: Request) {
       email: user.email,
       role: user.role,
     });
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      console.error("JWT_SECRET is not defined in environment variables");
-      return NextResponse.json(
-        { message: "Server authentication error" },
-        { status: 500 }
-      );
-    }
 
-    const token = jwt.sign(
-      {
-        userId: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-      jwtSecret,
-      { expiresIn: "1d" }
-    );
-
-    // Create the successful response
-    const response = NextResponse.json({
+    // Return user data AND token
+    return NextResponse.json({
       message: "Login successful",
       token,
       user: {
@@ -84,20 +65,6 @@ export async function POST(request: Request) {
         role: user.role,
       },
     });
-
-    // Set the token as a secure HTTP-only cookie
-    response.cookies.set({
-      name: 'token',
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 86400, // 1 day
-    });
-
-    return response;
-
   } catch (error) {
     console.error("Login Error:", error);
     return NextResponse.json(
