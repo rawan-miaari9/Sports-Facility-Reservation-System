@@ -1,17 +1,17 @@
 'use client';
 
 import React from 'react';
-import { 
-  Calendar, 
-  X, 
-  Users, 
-  Lock, 
-  CreditCard, 
-  Banknote, 
-  CheckSquare, 
-  Square, 
-  Loader2, 
-  ChevronRight 
+import {
+  Calendar,
+  X,
+  Users,
+  Lock,
+  CreditCard,
+  Banknote,
+  CheckSquare,
+  Square,
+  Loader2,
+  ChevronRight
 } from 'lucide-react';
 import { Facility, Reservation } from './FacilitiesView';
 
@@ -31,6 +31,20 @@ interface BookingDrawerProps {
   isSubmitting: boolean;
   onClose: () => void;
   onSubmit: (e: React.FormEvent) => void;
+
+  bookingType: "registered" | "guest";
+  setBookingType: (type: "registered" | "guest") => void;
+
+  guestName: string;
+  setGuestName: (value: string) => void;
+
+  guestPhone: string;
+  setGuestPhone: (value: string) => void;
+
+  guestEmail: string;
+  setGuestEmail: (value: string) => void;
+
+  isAdmin: boolean;
 }
 
 export function BookingDrawer({
@@ -47,6 +61,21 @@ export function BookingDrawer({
   equipmentOptions,
   reservations,
   isSubmitting,
+
+  bookingType,
+  setBookingType,
+
+  guestName,
+  setGuestName,
+
+  guestPhone,
+  setGuestPhone,
+
+  guestEmail,
+  setGuestEmail,
+
+  isAdmin,
+
   onClose,
   onSubmit
 }: BookingDrawerProps) {
@@ -54,10 +83,10 @@ export function BookingDrawer({
 
   const isSlotTaken = (facilityId: string, date: string, slot: string) => {
     return reservations.some(
-      r => (r.facilityId === facilityId || (r as any).facility === facilityId) && 
-           r.date === date && 
-           r.timeSlot === slot && 
-           r.status !== 'Cancelled'
+      r => (r.facilityId === facilityId || (r as any).facility === facilityId) &&
+        r.date === date &&
+        r.timeSlot === slot &&
+        r.status !== 'Cancelled'
     );
   };
 
@@ -74,7 +103,7 @@ export function BookingDrawer({
   return (
     <div className="absolute inset-0 bg-black/40 z-50 flex justify-end">
       <div className="flex-1" onClick={onClose} />
-      
+
       <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col justify-between border-l border-outline-variant relative z-10 animate-in slide-in-from-right duration-300">
         <div className="p-6 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
           <div className="flex items-center gap-2.5">
@@ -86,7 +115,7 @@ export function BookingDrawer({
               <span className="block text-[10px] text-outline font-mono font-bold tracking-wider uppercase">ATHLETICHUB SCHEDULER</span>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-1.5 hover:bg-surface-container rounded-lg text-outline hover:text-on-surface transition-colors cursor-pointer"
           >
@@ -96,9 +125,9 @@ export function BookingDrawer({
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
           <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant flex gap-3">
-            <img 
-              src={selectedFacility.image} 
-              alt={selectedFacility.name} 
+            <img
+              src={selectedFacility.image}
+              alt={selectedFacility.name}
               className="w-16 h-16 rounded-xl object-cover border"
             />
             <div className="min-w-0 flex-1">
@@ -111,7 +140,65 @@ export function BookingDrawer({
               </div>
             </div>
           </div>
+          {isAdmin && (
+            <div className="space-y-2">
+              <label className="text-xs font-mono uppercase tracking-wider text-outline font-bold">
+                Booking Type
+              </label>
 
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBookingType("registered")}
+                  className={`flex-1 p-3 rounded-xl border ${bookingType === "registered"
+                    ? "bg-primary text-white border-primary"
+                    : "border-outline-variant"
+                    }`}
+                >
+                  Registered User
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setBookingType("guest")}
+                  className={`flex-1 p-3 rounded-xl border ${bookingType === "guest"
+                    ? "bg-primary text-white border-primary"
+                    : "border-outline-variant"
+                    }`}
+                >
+                  Guest
+                </button>
+              </div>
+            </div>
+          )}
+
+          {isAdmin && bookingType === "guest" && (
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Guest Full Name"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                className="w-full p-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm"
+              />
+
+              <input
+                type="text"
+                placeholder="Guest Phone Number"
+                value={guestPhone}
+                onChange={(e) => setGuestPhone(e.target.value)}
+                className="w-full p-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm"
+              />
+
+              <input
+                type="email"
+                placeholder="Guest Email (Optional)"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                className="w-full p-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm"
+              />
+            </div>
+          )}
           {/* Step 1 */}
           <div className="space-y-2">
             <label className="text-xs font-mono uppercase tracking-wider text-outline font-bold flex items-center gap-1.5">
@@ -147,13 +234,12 @@ export function BookingDrawer({
                     type="button"
                     onClick={() => !isBooked && setSelectedSlot(slot)}
                     disabled={isBooked}
-                    className={`py-3 px-2 rounded-xl text-xs font-bold text-center border transition-all ${
-                      isBooked 
-                        ? 'bg-outline-variant/30 border-outline-variant text-outline/65 cursor-not-allowed flex items-center justify-center gap-1' 
-                        : isSelected 
-                        ? 'bg-primary border-primary text-white shadow-md scale-102' 
+                    className={`py-3 px-2 rounded-xl text-xs font-bold text-center border transition-all ${isBooked
+                      ? 'bg-outline-variant/30 border-outline-variant text-outline/65 cursor-not-allowed flex items-center justify-center gap-1'
+                      : isSelected
+                        ? 'bg-primary border-primary text-white shadow-md scale-102'
                         : 'bg-surface-container-low hover:bg-surface-container border-outline-variant text-on-surface cursor-pointer'
-                    }`}
+                      }`}
                   >
                     {isBooked ? (
                       <>
@@ -176,11 +262,10 @@ export function BookingDrawer({
               <button
                 type="button"
                 onClick={() => setPaymentMethod('Card')}
-                className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                  paymentMethod === 'Card'
-                    ? 'border-primary bg-primary/5 text-primary font-bold'
-                    : 'border-outline-variant text-on-surface-variant'
-                }`}
+                className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${paymentMethod === 'Card'
+                  ? 'border-primary bg-primary/5 text-primary font-bold'
+                  : 'border-outline-variant text-on-surface-variant'
+                  }`}
               >
                 <CreditCard className="h-5 w-5" />
                 <span className="text-xs">Credit Card</span>
@@ -190,11 +275,10 @@ export function BookingDrawer({
               <button
                 type="button"
                 onClick={() => setPaymentMethod('Cash')}
-                className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                  paymentMethod === 'Cash'
-                    ? 'border-primary bg-primary/5 text-primary font-bold'
-                    : 'border-outline-variant text-on-surface-variant'
-                }`}
+                className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${paymentMethod === 'Cash'
+                  ? 'border-primary bg-primary/5 text-primary font-bold'
+                  : 'border-outline-variant text-on-surface-variant'
+                  }`}
               >
                 <Banknote className="h-5 w-5" />
                 <span className="text-xs">Cash Payment</span>
@@ -202,14 +286,14 @@ export function BookingDrawer({
               </button>
             </div>
           </div>
-          
+
         </div>
 
         {/* Breakdown */}
         <div className="p-6 border-t border-outline-variant bg-surface-container-low space-y-4">
           <div className="space-y-1.5">
             <span className="block text-[10px] font-mono text-outline font-bold uppercase tracking-wider">PAYMENT BILLING BREAKDOWN</span>
-            
+
             <div className="flex justify-between items-center text-xs text-on-surface-variant font-medium">
               <span>Base Arena Rate ({bookedHours} hrs):</span>
               <span>${basePrice}</span>
@@ -232,11 +316,10 @@ export function BookingDrawer({
             type="button"
             onClick={onSubmit}
             disabled={!selectedSlot || isSubmitting}
-            className={`w-full py-3.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              selectedSlot && !isSubmitting
-                ? 'bg-primary hover:bg-primary-container text-white shadow-lg' 
-                : 'bg-outline-variant/60 text-outline cursor-not-allowed'
-            }`}
+            className={`w-full py-3.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer ${selectedSlot && !isSubmitting
+              ? 'bg-primary hover:bg-primary-container text-white shadow-lg'
+              : 'bg-outline-variant/60 text-outline cursor-not-allowed'
+              }`}
           >
             {isSubmitting ? (
               <>
