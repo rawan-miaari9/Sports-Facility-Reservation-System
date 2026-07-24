@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    //  Zod Validation
+    // Zod Validation
     const validation = loginSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
@@ -20,10 +20,10 @@ export async function POST(request: Request) {
 
     const { email, password } = validation.data;
 
-    //  Connect to Database
+    // Connect to Database
     await connectDB();
 
-    //  check if user already in db
+    // Check if user already in db
     const user = await User.findOne({ email });
     if (!user) {
       return NextResponse.json(
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       );
     }
 
-    //  Compare Password
+    // Compare Password
     let isMatch = false;
     if (user.password.startsWith("$2a$") || user.password.startsWith("$2b$")) {
       isMatch = await bcrypt.compare(password, user.password);
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate JWT Token (AFTER user and password are valid)
+    // Generate JWT Token
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {
       console.error("JWT_SECRET is not defined in environment variables");
@@ -61,15 +61,15 @@ export async function POST(request: Request) {
       {
         userId: user._id.toString(),
         email: user.email,
-        name:user.name,
+        name: user.name,
         role: user.role,
       },
       jwtSecret,
       { expiresIn: "1d" }
     );
 
-    // Return user data AND token
-    return NextResponse.json({
+    // Create the successful response
+    const response = NextResponse.json({
       message: "Login successful",
       token, 
       user: {
@@ -79,6 +79,20 @@ export async function POST(request: Request) {
         role: user.role,
       },
     });
+
+    // Set the token as a secure HTTP-only cookie
+    response.cookies.set({
+      name: 'token',
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 86400, // 1 day
+    });
+
+    return response;
+
   } catch (error) {
     console.error("Login Error:", error);
     return NextResponse.json(

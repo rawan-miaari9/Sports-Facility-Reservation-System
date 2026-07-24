@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User as UserIcon, 
   Mail, 
@@ -24,12 +24,22 @@ interface SettingsViewProps {
 }
 
 export default function SettingsView({ currentUser, onUpdateProfile }: SettingsViewProps) {
-  // Local profile states
-  const [name, setName] = useState(currentUser.name);
-  const [email, setEmail] = useState(currentUser.email);
-  const [phone, setPhone] = useState(currentUser.phone);
-  const [dob, setDob] = useState(currentUser.dateOfBirth);
+  // Local profile states (fallback to empty string if loading)
+  const [name, setName] = useState(currentUser?.name || '');
+  const [email, setEmail] = useState(currentUser?.email || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [dob, setDob] = useState(currentUser?.dateOfBirth || '');
   
+  // Keep local state synchronized when currentUser loads or changes
+  useEffect(() => {
+    if (currentUser) {
+      setName(currentUser.name || '');
+      setEmail(currentUser.email || '');
+      setPhone(currentUser.phone || '');
+      setDob(currentUser.dateOfBirth || '');
+    }
+  }, [currentUser]);
+
   // Local toggles
   const [notifEmail, setNotifEmail] = useState(true);
   const [notifSMS, setNotifSMS] = useState(true);
@@ -38,23 +48,45 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
 
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const handleProfileSave = (e: React.FormEvent) => {
+  const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const updatedUser: User = {
-      ...currentUser,
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone.trim(),
-      dateOfBirth: dob
-    };
+    try {
+      const response = await fetch('/api/users/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          phone: phone.trim(),
+          dateOfBirth: dob
+        })
+      });
 
-    onUpdateProfile(updatedUser);
-    setSaveSuccess(true);
-    
-    setTimeout(() => {
-      setSaveSuccess(false);
-    }, 2500);
+      const data = await response.json();
+
+      if (data.success) {
+        const updatedUser: User = {
+          ...currentUser,
+          name: data.user.name,
+          email: data.user.email,
+          phone: data.user.phone || '',
+          dateOfBirth: data.user.dateOfBirth || ''
+        };
+
+        onUpdateProfile(updatedUser);
+        setSaveSuccess(true);
+        
+        setTimeout(() => {
+          setSaveSuccess(false);
+        }, 2500);
+      } else {
+        alert(data.message || 'Failed to update profile');
+      }
+    } catch (err) {
+      console.error('Error saving profile:', err);
+      alert('An error occurred while saving profile settings.');
+    }
   };
 
   return (
@@ -162,22 +194,22 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
             </span>
 
             <div className="w-16 h-16 rounded-2xl bg-primary text-white font-display font-black text-xl flex items-center justify-center border shadow-md mx-auto">
-              {name.split(' ').map(n => n.charAt(0)).join('')}
+              {name ? name.split(' ').map(n => n.charAt(0)).join('') : 'U'}
             </div>
 
             <div>
-              <span className="block font-display font-black text-base text-on-surface">{name}</span>
-              <span className="block text-xs text-outline font-mono mt-0.5">{email}</span>
+              <span className="block font-display font-black text-base text-on-surface">{name || 'Loading...'}</span>
+              <span className="block text-xs text-outline font-mono mt-0.5">{email || 'Loading...'}</span>
             </div>
 
             <div className="pt-4 border-t border-outline-variant/60 grid grid-cols-2 text-center text-xs gap-4 font-mono">
               <div>
                 <span className="block text-[9px] text-outline uppercase font-bold">Roster Role</span>
-                <span className="font-bold text-primary block mt-0.5">{currentUser.role}</span>
+                <span className="font-bold text-primary block mt-0.5">{currentUser?.role}</span>
               </div>
               <div>
                 <span className="block text-[9px] text-outline uppercase font-bold">Member Since</span>
-                <span className="font-bold text-on-surface block mt-0.5">{currentUser.memberSince}</span>
+                <span className="font-bold text-on-surface block mt-0.5">{currentUser?.memberSince || 'July 2026'}</span>
               </div>
             </div>
           </div>
