@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   ArrowRight,
   Lock,
-  User,
+  User as UserIcon,
   Phone,
   Calendar,
 } from "lucide-react";
@@ -66,11 +66,11 @@ export function AuthForm() {
     router.push("/");
   };
 
- const handleLoginSuccess = (role: string) => {
+  const handleLoginSuccess = (role: string) => {
     if (role === "admin") {
-      router.push("/admin/dashboard"); // or your admin dashboard path (e.g. /admin)
+      router.push("/admin/dashboard");
     } else {
-      router.push("/dashboard"); // standard user dashboard
+      router.push("/dashboard");
     }
   };
 
@@ -98,13 +98,11 @@ export function AuthForm() {
         return;
       }
 
-      // Save JWT token in localStorage for authenticated API requests
       if (data.token) {
         localStorage.setItem("token", data.token);
       }
 
       const userRole = data.user?.role || data.role || "user";
-
       handleLoginSuccess(userRole);
     } catch (error) {
       setErrorMessage("Something went wrong");
@@ -146,7 +144,7 @@ export function AuthForm() {
   };
 
   return (
-     <div className="min-h-screen bg-background font-sans flex lg:grid lg:grid-cols-12 overflow-hidden relative">
+    <div className="min-h-screen bg-background font-sans flex lg:grid lg:grid-cols-12 overflow-hidden relative">
       {/* Back Button */}
       <Button
         variant="outline"
@@ -158,10 +156,10 @@ export function AuthForm() {
       </Button>
 
       {/* Auth Form Container */}
-<div className="lg:col-span-5 flex flex-col justify-center px-8 md:px-16 bg-white min-h-screen w-full pt-20 pb-8">
+      <div className="lg:col-span-5 flex flex-col justify-center px-8 md:px-16 bg-white min-h-screen w-full pt-20 pb-8">
         <div className="max-w-md w-full mx-auto">
           {/* Header */}
-         <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-8">
             <div className="bg-primary text-white p-2.5 rounded-xl shadow-md flex items-center justify-center">
               <Activity className="h-6 w-6" />
             </div>
@@ -176,25 +174,13 @@ export function AuthForm() {
             </div>
           </div>
 
-         {/*  <div className="mb-6">
-            <h2 className="font-display font-black text-2xl text-on-surface">
-              {isLogin ? 'Access Portal' : 'Register Profile'}
-            </h2>
-            <p className="text-on-surface-variant text-xs mt-1">
-              {isLogin 
-                ? 'Sign in with your Email' 
-                : 'Create an Account to be Able to Book Cour.'
-              }
-            </p>
-          </div>*/}
-
           {/* Switcher */}
           <div className="grid grid-cols-2 bg-gray-100 p-1 rounded-xl mb-6">
             <button
               type="button"
               onClick={() => setIsLogin(true)}
-               className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                isLogin ? 'bg-white text-primary shadow-sm' : "text-gray-500"
+              className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                isLogin ? "bg-white text-primary shadow-sm" : "text-gray-500"
               }`}
             >
               Sign In
@@ -213,8 +199,8 @@ export function AuthForm() {
           {/* Feedback Messages */}
           {errorMessage && (
             <div className="mb-4 p-3 bg-red-100 text-red-600 rounded-xl flex items-center gap-2 text-sm">
-               <ShieldAlert className="h-4 w-4 shrink-0" />
-             {errorMessage}
+              <ShieldAlert className="h-4 w-4 shrink-0" />
+              {errorMessage}
             </div>
           )}
 
@@ -228,7 +214,6 @@ export function AuthForm() {
           {/* Login Form */}
           {isLogin ? (
             <form onSubmit={handleLoginSubmit} className="flex flex-col gap-4">
-        
               <Input
                 type="text"
                 placeholder="Email"
@@ -240,7 +225,7 @@ export function AuthForm() {
                 }
                 className="w-full pl-4 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary font-medium"
               />
-            
+
               <Input
                 type="password"
                 placeholder="Password"
@@ -254,7 +239,7 @@ export function AuthForm() {
               />
               <Button type="submit" fullWidth>
                 Login
-                 <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4" />
               </Button>
             </form>
           ) : (
@@ -264,12 +249,12 @@ export function AuthForm() {
                 type="text"
                 placeholder="Full Name"
                 label="Full Name"
-                icon={User}
+                icon={UserIcon}
                 value={registerData.name}
                 onChange={(e) =>
                   setRegisterData({ ...registerData, name: e.target.value })
                 }
-                 className="w-full pl-4 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary font-medium"
+                className="w-full pl-4 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary font-medium"
               />
               <Input
                 type="text"
@@ -280,7 +265,7 @@ export function AuthForm() {
                 onChange={(e) =>
                   setRegisterData({ ...registerData, email: e.target.value })
                 }
-                 className="w-full pl-4 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary font-medium"
+                className="w-full pl-4 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary font-medium"
               />
               <Input
                 type="tel"
@@ -291,7 +276,7 @@ export function AuthForm() {
                 onChange={(e) =>
                   setRegisterData({ ...registerData, phone: e.target.value })
                 }
-                 className="w-full pl-4 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary font-medium"
+                className="w-full pl-4 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary font-medium"
               />
               <Input
                 type="date"
@@ -301,18 +286,18 @@ export function AuthForm() {
                 onChange={(e) =>
                   setRegisterData({ ...registerData, dateOfBirth: e.target.value })
                 }
-                 className="w-full pl-4 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary font-medium"
+                className="w-full pl-4 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary font-medium"
               />
               <Input
                 type="password"
                 placeholder="Password"
-                label="Passwrod"
+                label="Password"
                 icon={Lock}
                 value={registerData.password}
                 onChange={(e) =>
                   setRegisterData({ ...registerData, password: e.target.value })
                 }
-                 className="w-full pl-4 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary font-medium"
+                className="w-full pl-4 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary font-medium"
               />
               <Button type="submit" fullWidth>
                 Register <ArrowRight className="h-4 w-4" />
@@ -322,7 +307,7 @@ export function AuthForm() {
         </div>
       </div>
 
-      {/* Right Side*/}
+      {/* Right Side */}
       <div className="hidden lg:col-span-7 lg:block relative min-h-screen">
         <div className="absolute inset-0 bg-[#001f44]/80 z-10 mix-blend-multiply" />
         <img
@@ -331,7 +316,6 @@ export function AuthForm() {
           className="w-full h-full object-cover absolute inset-0"
           referrerPolicy="no-referrer"
         />
-
       </div>
     </div>
   );
