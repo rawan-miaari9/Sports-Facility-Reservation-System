@@ -17,7 +17,7 @@ import { User } from '../types';
 
 interface UserManagementViewProps {
   users: User[];
-  onUpdateUserRole: (id: string, newRole: 'Admin' | 'Athlete') => void;
+  onUpdateUserRole: (id: string, newRole: 'admin' | 'user') => void;
   onUpdateUserStatus: (id: string, newStatus: 'Available' | 'Booked' | 'Suspended') => void;
   onAddNewUser: (newUser: User) => void;
 }
@@ -36,7 +36,7 @@ export default function UserManagementView({
   const [newEmail, setNewEmail] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [newDob, setNewDob] = useState('');
-  const [newRole, setNewRole] = useState<'Athlete' | 'Admin'>('Athlete');
+  const [newRole, setNewRole] = useState<'user' | 'admin'>('user');
 
   // Filter users
   const filteredUsers = users.filter(user => 
@@ -46,8 +46,8 @@ export default function UserManagementView({
 
   // Statistics
   const totalUsersCount = users.length;
-  const adminCount = users.filter(u => u.role === 'Admin').length;
-  const athleteCount = users.filter(u => u.role === 'Athlete').length;
+  const adminCount = users.filter(u => u.role === 'admin').length;
+  const athleteCount = users.filter(u => u.role === 'user').length;
   const suspendedCount = users.filter(u => u.status === 'Suspended').length;
 
   // Submit on-the-fly add user
@@ -78,7 +78,7 @@ export default function UserManagementView({
     setNewEmail('');
     setNewPhone('');
     setNewDob('');
-    setNewRole('Athlete');
+    setNewRole('user');
   };
 
   return (
@@ -190,9 +190,9 @@ export default function UserManagementView({
                     {/* Role toggler */}
                     <td className="py-4 px-6 text-center">
                       <button
-                        onClick={() => onUpdateUserRole(user.id, user.role === 'Admin' ? 'Athlete' : 'Admin')}
+                        onClick={() => onUpdateUserRole(user.id, user.role === 'admin' ? 'user' : 'admin')}
                         className={`px-3 py-1.5 rounded-xl text-[10px] font-mono font-bold cursor-pointer transition-all border uppercase ${
-                          user.role === 'Admin' 
+                          user.role === 'admin' 
                             ? 'bg-secondary-container/25 border-secondary/25 text-on-secondary-container' 
                             : 'bg-primary-container/25 border-primary/25 text-primary'
                         }`}
@@ -326,9 +326,9 @@ export default function UserManagementView({
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => setNewRole('Athlete')}
+                    onClick={() => setNewRole('user')}
                     className={`py-3 rounded-xl border text-xs font-bold text-center cursor-pointer transition-all ${
-                      newRole === 'Athlete' 
+                      newRole === 'user' 
                         ? 'border-primary bg-primary/5 text-primary' 
                         : 'border-outline-variant hover:border-outline text-on-surface-variant'
                     }`}
@@ -337,9 +337,9 @@ export default function UserManagementView({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setNewRole('Admin')}
+                    onClick={() => setNewRole('admin')}
                     className={`py-3 rounded-xl border text-xs font-bold text-center cursor-pointer transition-all ${
-                      newRole === 'Admin' 
+                      newRole === 'admin' 
                         ? 'border-primary bg-primary/5 text-primary' 
                         : 'border-outline-variant hover:border-outline text-on-surface-variant'
                     }`}

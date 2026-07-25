@@ -22,8 +22,8 @@ export default function OperationsLauncher({ onViewChange }: LauncherProps) {
           className="w-full p-4 rounded-xl border border-outline-variant bg-surface-container-low hover:bg-surface-container hover:border-primary/40 text-left transition-all flex items-center justify-between cursor-pointer"
         >
           <div>
-            <span className="block font-display font-extrabold text-sm text-primary">Provision New Arena</span>
-            <span className="block text-[10px] text-outline mt-0.5">Manage and provision facilities</span>
+            <span className="block font-display font-extrabold text-sm text-primary">Add New Arena</span>
+            <span className="block text-[10px] text-outline mt-0.5">Manage facilities</span>
           </div>
           <Plus className="h-5 w-5 text-primary" />
         </button>
@@ -34,7 +34,7 @@ export default function OperationsLauncher({ onViewChange }: LauncherProps) {
           className="w-full p-4 rounded-xl border border-outline-variant bg-surface-container-low hover:bg-surface-container hover:border-primary/40 text-left transition-all flex items-center justify-between cursor-pointer"
         >
           <div>
-            <span className="block font-display font-extrabold text-sm text-on-surface">Audit Active Members</span>
+            <span className="block font-display font-extrabold text-sm text-on-surface">Manage Users</span>
             <span className="block text-[10px] text-outline mt-0.5">Adjust status, roles & spend metrics</span>
           </div>
           <ChevronRight className="h-5 w-5 text-outline" />
@@ -46,7 +46,7 @@ export default function OperationsLauncher({ onViewChange }: LauncherProps) {
           className="w-full p-4 rounded-xl border border-outline-variant bg-surface-container-low hover:bg-surface-container hover:border-primary/40 text-left transition-all flex items-center justify-between cursor-pointer"
         >
           <div>
-            <span className="block font-display font-extrabold text-sm text-on-surface">Export Reservation Log</span>
+            <span className="block font-display font-extrabold text-sm text-on-surface">Manage Booking</span>
             <span className="block text-[10px] text-outline mt-0.5">Cancel, complete or filter logs</span>
           </div>
           <ChevronRight className="h-5 w-5 text-outline" />
