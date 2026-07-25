@@ -30,7 +30,6 @@ export async function GET(request: Request) {
       }
     }
 
-<<<<<<<<< Temporary merge branch 1
     const bookings = await Booking.find(query)
       .sort({ date: 1 })
       .lean();
@@ -96,7 +95,7 @@ export async function POST(request: Request) {
       },
       { status: 500 }
     );
-=========
+
     const bookings = await Booking.find(query).lean().sort({ date: -1 });
 
     const userIds = [...new Set(bookings.map((b: any) => b.userId).filter(Boolean))];
@@ -125,6 +124,6 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error fetching reservations:', error);
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
->>>>>>>>> Temporary merge branch 2
+
   }
 }
