@@ -10,95 +10,31 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
+    const role = searchParams.get("role");
 
-    let query = {};
+    let query: any = {};
 
-    if (userId) {
-      try {
-        query = {
-          bookingType: "registered",
-          $or: [
-            { userId },
-            { userId: new mongoose.Types.ObjectId(userId) },
-          ],
-        };
-      } catch {
-        query = {
-          bookingType: "registered",
-          userId,
-        };
+    if (userId && role !== 'Admin') {
+      const conditions: any[] = [
+        { userId: userId },
+        { user: userId },
+        { athleteId: userId }
+      ];
+
+      if (mongoose.Types.ObjectId.isValid(userId)) {
+        conditions.push(
+          { userId: new mongoose.Types.ObjectId(userId) },
+          { user: new mongoose.Types.ObjectId(userId) },
+          { athleteId: new mongoose.Types.ObjectId(userId) }
+        );
       }
+
+      query = { $or: conditions };
     }
-
-    const bookings = await Booking.find(query)
-      .sort({ date: 1 })
-      .lean();
-    return NextResponse.json(
-      {
-        success: true,
-        data: bookings,
-      },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    await dbConnect();
-
-    const body = await request.json();
-
-    const booking = await Booking.create({
-      facilityId: body.facilityId,
-
-      bookingType: body.bookingType || "registered",
-
-      userId: body.userId,
-
-      guestName: body.guestName,
-      guestPhone: body.guestPhone,
-      guestEmail: body.guestEmail,
-
-      date: body.date,
-      timeSlot: body.timeSlot,
-
-      price: body.price,
-
-      paymentMethod: body.paymentMethod,
-
-      equipment: body.equipment || [],
-
-      status: "Pending",
-    });
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: booking,
-      },
-      { status: 201 }
-    );
-  } catch (error: any) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
-      { status: 500 }
-    );
 
     const bookings = await Booking.find(query).lean().sort({ date: -1 });
 
-    const userIds = [...new Set(bookings.map((b: any) => b.userId).filter(Boolean))];
+    const userIds = [...new Set(bookings.map((b: any) => b.userId || b.user).filter(Boolean))];
     const users = await User.find({ _id: { $in: userIds } }).lean();
     const userMap = new Map(users.map((u: any) => [u._id.toString(), u]));
 
@@ -107,23 +43,78 @@ export async function POST(request: Request) {
       return {
         id: b._id.toString(),
         userId: (b.userId || b.user || '').toString(),
-        userName: b.userName || matchedUser.name || 'Rawan M',
-        userEmail: b.userEmail || matchedUser.email || 'rawan@gmail.com',
+        userName: b.userName || matchedUser.name || 'Rawan',
+        userEmail: b.userEmail || matchedUser.email || '',
         facilityName: b.facilityName || 'Arena Court',
         facilityImage: b.facilityImage || 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5',
         sport: b.sport || 'Soccer / Tennis',
-        date: b.date || b.bookingDate || '2026-07-28',
+        date: b.date || b.bookingDate || '',
         timeSlot: b.timeSlot || (b.startTime && b.endTime ? `${b.startTime} - ${b.endTime}` : '16:00 - 18:00'),
-        price: b.price || b.totalPrice || 152,
+        price: b.price || b.totalPrice || 0,
         status: b.status ? b.status.charAt(0).toUpperCase() + b.status.slice(1) : 'Pending',
         equipment: b.equipment || []
       };
     });
 
     return NextResponse.json({ success: true, data: formattedBookings }, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching reservations:', error);
-    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
+}
 
+export async function POST(request: Request) {
+  try {
+    await dbConnect();
+    const body = await request.json();
+
+    const booking = await Booking.create({
+      facilityId: body.facilityId,
+      bookingType: body.bookingType || "registered",
+      userId: body.userId || body.user,
+      guestName: body.guestName,
+      guestPhone: body.guestPhone,
+      guestEmail: body.guestEmail,
+      date: body.date,
+      timeSlot: body.timeSlot,
+      price: body.price,
+      paymentMethod: body.paymentMethod,
+      equipment: body.equipment || [],
+      status: "Pending",
+    });
+
+    return NextResponse.json({ success: true, data: booking }, { status: 201 });
+  } catch (error: any) {
+    console.error('Error creating booking:', error);
+    return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    await dbConnect();
+    
+    const { searchParams } = new URL(request.url);
+    let id = searchParams.get("id");
+
+    if (!id) {
+      const urlParts = request.url.split('/');
+      id = urlParts[urlParts.length - 1];
+    }
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ success: false, error: 'Invalid or missing Reservation ID' }, { status: 400 });
+    }
+
+    const deletedBooking = await Booking.findByIdAndDelete(id);
+
+    if (!deletedBooking) {
+      return NextResponse.json({ success: false, error: 'Reservation not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, data: {} }, { status: 200 });
+  } catch (error: any) {
+    console.error('Error deleting reservation:', error);
+    return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

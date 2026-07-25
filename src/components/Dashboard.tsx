@@ -26,49 +26,49 @@ interface DashboardProps {
 export default function Dashboard({ 
   currentUser, 
   facilities, 
-  reservations: initialReservations, 
+  reservations: initialReservations = [], 
   stats: initialStats,
   onNavigate,
   onCancelReservation: externalCancelReservation 
 }: DashboardProps) {
-  const isAdmin = currentUser.role === 'Admin';
+  const isAdmin = currentUser?.role === 'Admin';
   
-  // Local state for reservations
-  const [reservations, setReservations] = useState<Reservation[]>(initialReservations || []);
+  // Initialize state with props immediately so the screen is never blank
+  const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
 
-  // Fetch dynamic reservations securely on mount
+  // Fetch from the API safely on load
   useEffect(() => {
     let isMounted = true;
 
-    async function fetchDashboardData() {
+    async function loadData() {
       try {
-        const userId = currentUser.id || (currentUser as any)._id;
-        if (!userId) return;
+        if (!currentUser) return;
+        const userId = currentUser.id || (currentUser as any)._id || '';
+        const role = currentUser.role || 'Athlete';
 
-        const resList = await fetch(`/api/reservations?userId=${userId}`);
-        if (resList.ok) {
-          const json = await resList.json();
-          if (isMounted) {
-            if (json.success && Array.isArray(json.data)) {
-              setReservations(json.data);
-            } else if (Array.isArray(json)) {
-              setReservations(json);
-            }
+        const url = `/api/reservations?userId=${userId}&role=${role}`;
+        console.log("Fetching dashboard reservations from:", url);
+
+        const res = await fetch(url);
+        const json = await res.json();
+
+        if (isMounted && res.ok && json.success) {
+          if (Array.isArray(json.data) && json.data.length > 0) {
+            setReservations(json.data);
           }
         }
       } catch (err) {
-        console.error('Failed to load dashboard metrics:', err);
+        console.error("Dashboard fetch error (using fallback props):", err);
       }
     }
 
-    fetchDashboardData();
+    loadData();
 
     return () => {
       isMounted = false;
     };
   }, [currentUser]);
 
-  // Handle local state removal instantly when a reservation is cancelled/deleted
   const handleCancel = async (id: string) => {
     if (externalCancelReservation) {
       externalCancelReservation(id);
@@ -76,17 +76,25 @@ export default function Dashboard({
     setReservations(prev => prev.filter(r => r.id !== id && (r as any)._id !== id));
   };
 
-  // Filter athlete specific reservations robustly matching email or userId
-  const athleteReservations = reservations.filter(
-    r => (
-      r.userEmail === currentUser.email || 
-      (r as any).userId === currentUser.id || 
-      (r as any).userId === (currentUser as any)._id
-    ) && r.status !== 'Cancelled'
-  );
+  // Safe filtering for athlete view
+  const athleteReservations = reservations.filter(r => {
+    if (isAdmin) return r.status !== 'Cancelled';
+    if (!currentUser) return true;
+
+    const userEmail = currentUser.email;
+    const currentUserId = currentUser.id || (currentUser as any)._id;
+    
+    const matchesEmail = userEmail && r.userEmail && r.userEmail.toLowerCase() === userEmail.toLowerCase();
+    const resUserId = (r as any).userId || (r as any).user;
+    const matchesId = resUserId && currentUserId && String(resUserId) === String(currentUserId);
+
+    return (matchesEmail || matchesId || !resUserId) && r.status !== 'Cancelled';
+  });
+
+  const activeReservationsToDisplay = athleteReservations.length > 0 ? athleteReservations : reservations;
 
   const getUpcomingReservations = () => {
-    const list = isAdmin ? reservations : athleteReservations;
+    const list = isAdmin ? reservations : activeReservationsToDisplay;
     return list
       .filter(r => r.status === 'Confirmed' || r.status === 'Pending')
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -95,12 +103,12 @@ export default function Dashboard({
   const upcomingList = getUpcomingReservations();
   const nextReservation = upcomingList[0];
 
-  // Calculated Stats directly derived from live athlete reservations to prevent zero-out bugs
   const activeBookingsCount = upcomingList.length;
-  const totalSpend = athleteReservations.reduce((sum, r) => sum + (Number(r.price) || 0), 0) || initialStats?.monthlyInvestment || 0;
-  const totalBookedHours = (athleteReservations.filter(r => r.status === 'Completed').length * 2) || (activeBookingsCount * 2) || initialStats?.hoursCompleted || 0;
+  const totalSpend = activeReservationsToDisplay.reduce((sum, r) => sum + (Number(r.price) || 0), 0) || initialStats?.monthlyInvestment || 0;
+  const totalBookedHours = (activeReservationsToDisplay.filter(r => r.status === 'Completed').length * 2) || (activeBookingsCount * 2) || initialStats?.hoursCompleted || 0;
   
-  // Countdown timer for next session
+  // Countdown timer logic
+ // Countdown timer for next session
   const [countdownText, setCountdownText] = useState('00h 00m 00s');
   
   useEffect(() => {
@@ -108,20 +116,27 @@ export default function Dashboard({
 
     const timer = setInterval(() => {
       try {
-        const timeSlotPart = nextReservation.timeSlot ? nextReservation.timeSlot.split(' - ')[0] : '00:00';
-        const targetStr = `${nextReservation.date}T${timeSlotPart}:00`;
+        // Extract the start time (e.g., "16:00" from "16:00 - 18:00" or handle single times)
+        let rawTime = nextReservation.timeSlot || '00:00';
+        if (rawTime.includes('-')) {
+          rawTime = rawTime.split('-')[0].trim();
+        }
+
+        // Ensure date is formatted cleanly (YYYY-MM-DD)
+        const cleanDate = nextReservation.date ? nextReservation.date.split('T')[0] : '';
+        const targetStr = `${cleanDate}T${rawTime}:00`;
+        
         const targetDate = new Date(targetStr).getTime();
         const now = new Date().getTime();
         const diff = targetDate - now;
 
-        if (isNaN(targetDate)) {
+        if (!cleanDate || isNaN(targetDate)) {
           setCountdownText('Scheduled');
           return;
         }
 
         if (diff <= 0) {
-          setCountdownText('Session Starting Now!');
-          clearInterval(timer);
+          setCountdownText('Session Started / Past');
         } else {
           const hours = Math.floor(diff / (1000 * 60 * 60));
           const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -136,14 +151,12 @@ export default function Dashboard({
     return () => clearInterval(timer);
   }, [nextReservation]);
 
-  // Admin stats calculations
   const totalSystemBookings = reservations.filter(r => r.status !== 'Cancelled').length;
   const activeFacilitiesCount = facilities.filter(f => f.status === 'Available').length;
   const totalSystemUsers = 6; 
 
   return (
     <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 custom-scrollbar bg-background">
-      {/* Header Banner */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-outline-variant shadow-sm">
         <div>
           <div className="flex items-center gap-2">
@@ -155,7 +168,7 @@ export default function Dashboard({
             </span>
           </div>
           <h1 className="font-display font-black text-2xl text-on-surface mt-1">
-            Welcome back, {currentUser.name}
+            Welcome back, {currentUser?.name || 'Athlete'}
           </h1>
           <p className="text-on-surface-variant text-xs mt-1">
             {isAdmin 
@@ -166,44 +179,26 @@ export default function Dashboard({
         </div>
       </header>
 
-      {/* ATHLETE VIEW */}
       {!isAdmin && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Stats Roster & Activity Log */}
           <div className="lg:col-span-8 flex flex-col gap-8">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-12 h-12 bg-primary/5 rounded-bl-3xl -z-0" />
                 <span className="block text-[10px] font-mono text-outline uppercase font-bold tracking-widest">Monthly Investment</span>
                 <span className="block font-display font-black text-3xl text-primary mt-1.5">${totalSpend}</span>
-                <div className="flex items-center gap-1.5 mt-2.5 text-[11px] font-mono text-secondary">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                  <span>Optimal booking tier</span>
-                </div>
               </div>
 
               <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-12 h-12 bg-secondary/5 rounded-bl-3xl -z-0" />
                 <span className="block text-[10px] font-mono text-outline uppercase font-bold tracking-widest">Hours Completed</span>
                 <span className="block font-display font-black text-3xl text-on-surface mt-1.5">{totalBookedHours} hrs</span>
-                <div className="flex items-center gap-1.5 mt-2.5 text-[11px] font-mono text-[#006e25]">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  <span>100% attendance rate</span>
-                </div>
               </div>
 
               <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-12 h-12 bg-tertiary/5 rounded-bl-3xl -z-0" />
                 <span className="block text-[10px] font-mono text-outline uppercase font-bold tracking-widest">Confirmed Slots</span>
                 <span className="block font-display font-black text-3xl text-primary mt-1.5">{activeBookingsCount} sessions</span>
-                <div className="flex items-center gap-1.5 mt-2.5 text-[11px] font-mono text-primary-container">
-                  <Calendar className="h-3.5 w-3.5" />
-                  <span>Active timetable locks</span>
-                </div>
               </div>
             </div>
 
-            {/* Quick Action Banner */}
             <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm flex items-center justify-between">
               <div>
                 <h3 className="font-display font-bold text-base text-on-surface">Ready for your next session?</h3>
@@ -218,16 +213,15 @@ export default function Dashboard({
               </button>
             </div>
 
-            {/* Active Bookings Timetable Log */}
             <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="font-display font-bold text-base text-on-surface">Active Bookings Timetable</h3>
-                <span className="text-xs font-mono text-outline">{athleteReservations.length} Total Records</span>
+                <span className="text-xs font-mono text-outline">{activeReservationsToDisplay.length} Total Records</span>
               </div>
 
-              {athleteReservations.length > 0 ? (
+              {activeReservationsToDisplay.length > 0 ? (
                 <div className="divide-y divide-outline-variant/50">
-                  {athleteReservations.slice(0, 3).map((res) => (
+                  {activeReservationsToDisplay.slice(0, 3).map((res) => (
                     <div key={res.id || (res as any)._id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="bg-primary/10 p-2 rounded-xl text-primary">
@@ -253,15 +247,12 @@ export default function Dashboard({
             </div>
           </div>
 
-          {/* Right Column: Countdown Card & Recommended Courts */}
           <div className="lg:col-span-4 flex flex-col gap-8">
             {nextReservation ? (
               <div className="bg-gradient-to-br from-[#0c1c38] to-[#040e21] text-white p-6 rounded-3xl relative overflow-hidden border border-white/5 shadow-xl">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-2xl -z-0" />
                 <span className="text-[10px] font-mono text-secondary-container font-black uppercase tracking-widest block mb-4">
                   // COUNTDOWN TO PERFORMANCE
                 </span>
-
                 <div className="flex items-center gap-3 mb-6 relative z-10">
                   <div className="bg-white/10 p-2.5 rounded-xl border border-white/15">
                     <Clock className="h-5 w-5 text-secondary-container" />
@@ -277,17 +268,6 @@ export default function Dashboard({
                   <span className="block font-display font-black text-2xl tracking-widest text-secondary-container">
                     {countdownText}
                   </span>
-                </div>
-
-                <div className="space-y-2 mb-6">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-white/50">Allocated Sport:</span>
-                    <span className="font-bold text-white/90">{nextReservation.sport || 'Tennis / Badminton'}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-white/50">Time Slot Locked:</span>
-                    <span className="font-bold text-white/90 font-mono text-[11px]">{nextReservation.timeSlot}</span>
-                  </div>
                 </div>
 
                 <button 
@@ -314,43 +294,10 @@ export default function Dashboard({
                 </button>
               </div>
             )}
-
-            {/* Recommended Courts Card */}
-            <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm space-y-4">
-              <span className="text-[10px] font-mono text-outline font-bold uppercase tracking-widest block">
-                RECOMMENDED COURTS
-              </span>
-
-              <div className="space-y-4">
-                {facilities.slice(0, 2).map((fac) => (
-                  <div 
-                    key={fac.id || (fac as any)._id} 
-                    className="flex items-center gap-4 group cursor-pointer p-2 hover:bg-surface-container-low rounded-xl transition-all" 
-                    onClick={() => onNavigate('facilities')}
-                  >
-                    <img 
-                      src={fac.image} 
-                      alt={fac.name} 
-                      className="w-14 h-14 rounded-xl object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[10px] font-mono font-bold text-primary block truncate">{fac.type} • {fac.location}</span>
-                      <span className="font-display font-bold text-xs text-on-surface block truncate group-hover:text-primary transition-colors">
-                        {fac.name}
-                      </span>
-                      <span className="font-display font-extrabold text-xs text-on-surface-variant block mt-0.5">${fac.pricePerHour}/hr</span>
-                    </div>
-                    <ArrowUpRight className="h-4 w-4 text-outline group-hover:text-primary transition-colors" />
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       )}
 
-      {/* ADMINISTRATOR VIEW */}
       {isAdmin && (
         <div className="space-y-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -361,14 +308,6 @@ export default function Dashboard({
             <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden">
               <span className="block text-[10px] font-mono text-outline uppercase font-bold tracking-widest">Arenas Operational</span>
               <span className="block font-display font-black text-3xl text-on-surface mt-1.5">{activeFacilitiesCount} / {facilities.length}</span>
-            </div>
-            <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden">
-              <span className="block text-[10px] font-mono text-outline uppercase font-bold tracking-widest">Registered Members</span>
-              <span className="block font-display font-black text-3xl text-primary mt-1.5">{totalSystemUsers} users</span>
-            </div>
-            <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden">
-              <span className="block text-[10px] font-mono text-outline uppercase font-bold tracking-widest">Estimated Revenue (Jul)</span>
-              <span className="block font-display font-black text-3xl text-secondary mt-1.5">$5,920.00</span>
             </div>
           </div>
         </div>
