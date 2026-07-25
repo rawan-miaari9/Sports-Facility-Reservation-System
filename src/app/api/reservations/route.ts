@@ -89,32 +89,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
-
-export async function DELETE(request: Request) {
-  try {
-    await dbConnect();
-    
-    const { searchParams } = new URL(request.url);
-    let id = searchParams.get("id");
-
-    if (!id) {
-      const urlParts = request.url.split('/');
-      id = urlParts[urlParts.length - 1];
-    }
-
-    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json({ success: false, error: 'Invalid or missing Reservation ID' }, { status: 400 });
-    }
-
-    const deletedBooking = await Booking.findByIdAndDelete(id);
-
-    if (!deletedBooking) {
-      return NextResponse.json({ success: false, error: 'Reservation not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ success: true, data: {} }, { status: 200 });
-  } catch (error: any) {
-    console.error('Error deleting reservation:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' }, { status: 500 });
-  }
-}

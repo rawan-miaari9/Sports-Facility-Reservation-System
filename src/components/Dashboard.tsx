@@ -69,13 +69,6 @@ export default function Dashboard({
     };
   }, [currentUser]);
 
-  const handleCancel = async (id: string) => {
-    if (externalCancelReservation) {
-      externalCancelReservation(id);
-    }
-    setReservations(prev => prev.filter(r => r.id !== id && (r as any)._id !== id));
-  };
-
   // Safe filtering for athlete view
   const athleteReservations = reservations.filter(r => {
     if (isAdmin) return r.status !== 'Cancelled';
@@ -107,8 +100,7 @@ export default function Dashboard({
   const totalSpend = activeReservationsToDisplay.reduce((sum, r) => sum + (Number(r.price) || 0), 0) || initialStats?.monthlyInvestment || 0;
   const totalBookedHours = (activeReservationsToDisplay.filter(r => r.status === 'Completed').length * 2) || (activeBookingsCount * 2) || initialStats?.hoursCompleted || 0;
   
-  // Countdown timer logic
- // Countdown timer for next session
+  // Countdown timer for next session
   const [countdownText, setCountdownText] = useState('00h 00m 00s');
   
   useEffect(() => {
@@ -116,13 +108,11 @@ export default function Dashboard({
 
     const timer = setInterval(() => {
       try {
-        // Extract the start time (e.g., "16:00" from "16:00 - 18:00" or handle single times)
         let rawTime = nextReservation.timeSlot || '00:00';
         if (rawTime.includes('-')) {
           rawTime = rawTime.split('-')[0].trim();
         }
 
-        // Ensure date is formatted cleanly (YYYY-MM-DD)
         const cleanDate = nextReservation.date ? nextReservation.date.split('T')[0] : '';
         const targetStr = `${cleanDate}T${rawTime}:00`;
         
@@ -253,6 +243,7 @@ export default function Dashboard({
                 <span className="text-[10px] font-mono text-secondary-container font-black uppercase tracking-widest block mb-4">
                   // COUNTDOWN TO PERFORMANCE
                 </span>
+
                 <div className="flex items-center gap-3 mb-6 relative z-10">
                   <div className="bg-white/10 p-2.5 rounded-xl border border-white/15">
                     <Clock className="h-5 w-5 text-secondary-container" />
@@ -270,12 +261,9 @@ export default function Dashboard({
                   </span>
                 </div>
 
-                <button 
-                  onClick={() => handleCancel(nextReservation.id || (nextReservation as any)._id)}
-                  className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-300 hover:text-white border border-red-500/20 hover:border-red-500/40 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                >
-                  Release Scheduled Slot
-                </button>
+                <div className="text-center text-xs text-slate-400 italic font-mono pt-2 border-t border-white/10">
+                  Manage or modify sessions via your bookings management tab.
+                </div>
               </div>
             ) : (
               <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm text-center py-10 flex flex-col items-center justify-center">
