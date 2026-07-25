@@ -341,12 +341,24 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
             </div>
           </form>
 
+<<<<<<< HEAD
+            <button
+              type="submit"
+              className="bg-primary hover:bg-primary-container text-white px-5 py-3 rounded-xl font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer mt-4"
+              id="settings-btn-save-profile"
+            >
+              <Save className="h-4.5 w-4.5" />
+              Save Profile Details
+            </button>
+          </div>
+=======
           {/* Change Password Form */}
           <form onSubmit={handlePasswordChange}>
             <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm space-y-5">
               <span className="block text-[10px] font-mono text-outline font-bold uppercase tracking-widest border-b border-outline-variant/60 pb-3">
                 ACCOUNT SECURITY & PASSWORD
               </span>
+>>>>>>> 9906881b000c5ad4d57e25eeaee47100cf305839
 
               {passwordSuccess && (
                 <div className="p-3.5 bg-secondary-container text-on-secondary-container rounded-xl text-xs font-bold flex items-center gap-2 border border-secondary/20">
