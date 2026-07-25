@@ -3,7 +3,7 @@ import connectDB from "@/lib/db/mongodb";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import { loginSchema } from "@/validators/auth/auth";
-import jwt from "jsonwebtoken";
+import { signJwtToken } from "@/lib/jwt";
 
 export async function POST(request: Request) {
   try {
@@ -23,8 +23,8 @@ export async function POST(request: Request) {
     // Connect to Database
     await connectDB();
 
-    // Check if user already in db
-    const user = await User.findOne({ email });
+    // MUST use .select("+password") because UserSchema sets select: false
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return NextResponse.json(
         { message: "Invalid email or password" },
@@ -32,9 +32,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Compare Password
+    // Compare Password safely
     let isMatch = false;
-    if (user.password.startsWith("$2a$") || user.password.startsWith("$2b$")) {
+    if (user.password && (user.password.startsWith("$2a$") || user.password.startsWith("$2b$"))) {
       isMatch = await bcrypt.compare(password, user.password);
     } else {
       isMatch = password === user.password;
@@ -48,30 +48,16 @@ export async function POST(request: Request) {
     }
 
     // Generate JWT Token
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      console.error("JWT_SECRET is not defined in environment variables");
-      return NextResponse.json(
-        { message: "Server authentication error" },
-        { status: 500 }
-      );
-    }
+    const token = signJwtToken({
+      userId: user._id.toString(),
+      email: user.email,
+      role: user.role,
+    });
 
-    const token = jwt.sign(
-      {
-        userId: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-      jwtSecret,
-      { expiresIn: "1d" }
-    );
-
-    // Create the successful response
-    const response = NextResponse.json({
+    // Return user data AND token
+    return NextResponse.json({
       message: "Login successful",
-      token, 
+      token,
       user: {
         id: user._id.toString(),
         name: user.name,
@@ -79,24 +65,10 @@ export async function POST(request: Request) {
         role: user.role,
       },
     });
-
-    // Set the token as a secure HTTP-only cookie
-    response.cookies.set({
-      name: 'token',
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 86400, // 1 day
-    });
-
-    return response;
-
   } catch (error) {
     console.error("Login Error:", error);
     return NextResponse.json(
-      { message: "Something went wrong" },
+      { message: "Something went wrong during login" },
       { status: 500 }
     );
   }

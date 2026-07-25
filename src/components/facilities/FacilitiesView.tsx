@@ -27,18 +27,29 @@ export interface Facility {
 export interface Reservation {
   _id?: string;
   id?: string;
+
   facilityId: string;
-  facilityName?: string;
-  sport: string;
-  userName: string;
-  userEmail: string;
+
+  bookingType: "registered" | "guest";
+
+  userId?: string;
+
+  guestName?: string;
+  guestPhone?: string;
+  guestEmail?: string;
+
   date: string;
   timeSlot: string;
+
   price: number;
-  paymentMethod: 'Cash' | 'Card';
-  paymentStatus: 'Pending' | 'Completed';
-  status: 'Pending' | 'Scheduled' | 'Cancelled';
+
+  paymentMethod: "Cash" | "Card";
+
   equipment: string[];
+
+  status: "Pending" | "Confirmed" | "Cancelled";
+
+  facilityName?: string;
 }
 
 interface FacilitiesViewProps {
@@ -84,7 +95,7 @@ export default function FacilitiesView({
   const getTodayString = () => new Date().toISOString().split('T')[0];
 
   const [facilities, setFacilities] = useState<Facility[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -99,22 +110,35 @@ export default function FacilitiesView({
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<'Card' | 'Cash'>('Card');
 
+  const [bookingType, setBookingType] = useState<"registered" | "guest">("registered");
+
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [lastCreatedReservation, setLastCreatedReservation] = useState<Reservation | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     async function loadData() {
       try {
-        setIsLoading(true);
+        setIsFetching(true);
         const data = await fetchFacilities();
-        setFacilities(data);
+        if (isMounted) setFacilities(data || []);
       } catch (err) {
         console.error('Failed to load facilities:', err);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsFetching(false);
       }
     }
+
     loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -130,6 +154,13 @@ export default function FacilitiesView({
     setSelectedSlot('');
     setSelectedEquipment([]);
     setPaymentMethod('Card');
+
+    setBookingType("registered");
+
+    setGuestName("");
+    setGuestPhone("");
+    setGuestEmail("");
+
     setBookingDate(getTodayString());
     setIsDrawerOpen(true);
   };
@@ -148,50 +179,73 @@ export default function FacilitiesView({
   };
 
   const filteredFacilities = facilities.filter(fac => {
-    const matchesSearch = fac.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          fac.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = fac.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fac.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSport = selectedSport === 'All' || fac.type === selectedSport;
-    const matchesIndoor = indoorFilter === 'All' || 
-                         (indoorFilter === 'Indoor' && fac.isIndoor) || 
-                         (indoorFilter === 'Outdoor' && !fac.isIndoor);
+    const matchesIndoor = indoorFilter === 'All' ||
+      (indoorFilter === 'Indoor' && fac.isIndoor) ||
+      (indoorFilter === 'Outdoor' && !fac.isIndoor);
     const matchesPrice = fac.pricePerHour <= maxPrice;
 
     return matchesSearch && matchesSport && matchesIndoor && matchesPrice;
   });
-
   const handleConfirmReservation = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedFacility) return;
 
+    if (!selectedFacility) return;
+    if (bookingType === "guest") {
+      if (!guestName.trim()) {
+        alert("Please enter the guest's full name.");
+        return;
+      }
+
+      if (!guestPhone.trim()) {
+        alert("Please enter the guest's phone number.");
+        return;
+      }
+    }
     const basePrice = selectedFacility.pricePerHour * 2;
+
     const equipmentCost = (EQUIPMENT_OPTIONS[selectedFacility.type] || [])
       .filter(eq => selectedEquipment.includes(eq.name))
       .reduce((sum, eq) => sum + eq.price, 0);
 
     try {
       setIsSubmitting(true);
+
       const result = await createReservation({
         facilityId: selectedFacility._id || selectedFacility.id,
-        sport: selectedFacility.type,
-        userName: currentUser.name,
-        userEmail: currentUser.email,
+
+        bookingType,
+
+        userId: bookingType === "registered" ? currentUser.id : undefined,
+
+        guestName: bookingType === "guest" ? guestName : undefined,
+        guestPhone: bookingType === "guest" ? guestPhone : undefined,
+        guestEmail: bookingType === "guest" && guestEmail.trim()
+          ? guestEmail.trim()
+          : undefined,
         date: bookingDate,
         timeSlot: selectedSlot,
+
         price: basePrice + equipmentCost,
+
         paymentMethod,
-        equipment: selectedEquipment
+
+        equipment: selectedEquipment,
       });
 
       if (result.success) {
         setLastCreatedReservation({
           ...result.data,
-          facilityName: selectedFacility.name
+          facilityName: selectedFacility.name,
         });
+
         setShowSuccessModal(true);
         handleCloseDrawer();
       }
     } catch (error: any) {
-      alert(error.message || 'Failed to submit reservation.');
+      alert(error.message || "Failed to submit reservation.");
     } finally {
       setIsSubmitting(false);
     }
@@ -200,6 +254,7 @@ export default function FacilitiesView({
   return (
     <div className="flex-1 flex overflow-hidden bg-background relative h-full">
       <div className="flex-1 overflow-y-auto px-8 py-8 space-y-6 custom-scrollbar">
+        {/* Header renders instantly without waiting */}
         <header className="flex justify-between items-center">
           <h1 className="font-display font-black text-2xl text-on-surface">Arenas</h1>
           {isAdmin && onNavigateToManage && (
@@ -213,6 +268,7 @@ export default function FacilitiesView({
           )}
         </header>
 
+        {/* Filter Bar renders instantly without waiting */}
         <FacilityFilterBar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -231,10 +287,13 @@ export default function FacilitiesView({
           }}
         />
 
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center p-24 space-y-4">
-            <Loader2 className="h-10 w-10 text-primary animate-spin" />
-            <span className="text-xs font-mono font-bold text-outline">LOADING ARENAS...</span>
+        {/* Cards Grid */}
+        {isFetching && facilities.length === 0 ? (
+          /* Card Skeletons instead of full-screen loader */
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            {[1, 2, 3, 4, 5, 6].map((idx) => (
+              <div key={idx} className="h-72 bg-surface-variant/30 animate-pulse rounded-2xl border border-outline-variant/50" />
+            ))}
           </div>
         ) : filteredFacilities.length === 0 ? (
           <div className="bg-white border border-outline-variant p-16 rounded-2xl text-center">
@@ -271,6 +330,20 @@ export default function FacilitiesView({
           equipmentOptions={EQUIPMENT_OPTIONS}
           reservations={reservations}
           isSubmitting={isSubmitting}
+          bookingType={bookingType}
+          setBookingType={setBookingType}
+
+          guestName={guestName}
+          setGuestName={setGuestName}
+
+          guestPhone={guestPhone}
+          setGuestPhone={setGuestPhone}
+
+          guestEmail={guestEmail}
+          setGuestEmail={setGuestEmail}
+
+          isAdmin={isAdmin}
+
           onClose={handleCloseDrawer}
           onSubmit={handleConfirmReservation}
         />

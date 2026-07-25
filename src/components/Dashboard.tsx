@@ -6,8 +6,7 @@ import {
   CheckCircle2, 
   Plus, 
   Sparkles,
-  ArrowUpRight,
-  ShieldAlert
+  ArrowUpRight
 } from 'lucide-react';
 import { User, Facility, Reservation } from '../types';
 
@@ -34,15 +33,10 @@ export default function Dashboard({
 }: DashboardProps) {
   const isAdmin = currentUser.role === 'Admin';
   
-  // Local state for reservations and stats
+  // Local state for reservations
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations || []);
-  const [userStats, setUserStats] = useState({
-    monthlyInvestment: initialStats?.monthlyInvestment || 0,
-    hoursCompleted: initialStats?.hoursCompleted || 0,
-    confirmedSlotsCount: initialStats?.confirmedSlotsCount || 0,
-  });
 
-  // Fetch dynamic stats and reservations securely
+  // Fetch dynamic reservations securely on mount
   useEffect(() => {
     let isMounted = true;
 
@@ -51,20 +45,6 @@ export default function Dashboard({
         const userId = currentUser.id || (currentUser as any)._id;
         if (!userId) return;
 
-        // Fetch user stats
-        const statsRes = await fetch(`/api/users/stats?userId=${userId}`);
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          if (isMounted && statsData) {
-            setUserStats({
-              monthlyInvestment: statsData.monthlyInvestment ?? 0,
-              hoursCompleted: statsData.hoursCompleted ?? 0,
-              confirmedSlotsCount: statsData.confirmedSlotsCount ?? 0,
-            });
-          }
-        }
-
-        // Fetch reservations list
         const resList = await fetch(`/api/reservations?userId=${userId}`);
         if (resList.ok) {
           const json = await resList.json();
@@ -96,9 +76,13 @@ export default function Dashboard({
     setReservations(prev => prev.filter(r => r.id !== id && (r as any)._id !== id));
   };
 
-  // Filter athlete specific reservations
+  // Filter athlete specific reservations robustly matching email or userId
   const athleteReservations = reservations.filter(
-    r => (r.userEmail === currentUser.email || (r as any).userId === currentUser.id) && r.status !== 'Cancelled'
+    r => (
+      r.userEmail === currentUser.email || 
+      (r as any).userId === currentUser.id || 
+      (r as any).userId === (currentUser as any)._id
+    ) && r.status !== 'Cancelled'
   );
 
   const getUpcomingReservations = () => {
@@ -111,10 +95,10 @@ export default function Dashboard({
   const upcomingList = getUpcomingReservations();
   const nextReservation = upcomingList[0];
 
-  // Calculated Stats
+  // Calculated Stats directly derived from live athlete reservations to prevent zero-out bugs
   const activeBookingsCount = upcomingList.length;
-  const totalSpend = athleteReservations.reduce((sum, r) => sum + (r.price || 0), 0) || userStats.monthlyInvestment;
-  const totalBookedHours = (athleteReservations.filter(r => r.status === 'Completed').length * 2) || userStats.hoursCompleted;
+  const totalSpend = athleteReservations.reduce((sum, r) => sum + (Number(r.price) || 0), 0) || initialStats?.monthlyInvestment || 0;
+  const totalBookedHours = (athleteReservations.filter(r => r.status === 'Completed').length * 2) || (activeBookingsCount * 2) || initialStats?.hoursCompleted || 0;
   
   // Countdown timer for next session
   const [countdownText, setCountdownText] = useState('00h 00m 00s');
@@ -185,7 +169,7 @@ export default function Dashboard({
       {/* ATHLETE VIEW */}
       {!isAdmin && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Stats Roster & Recent Activity Log */}
+          {/* Left Column: Stats Roster & Activity Log */}
           <div className="lg:col-span-8 flex flex-col gap-8">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden group">
@@ -234,7 +218,7 @@ export default function Dashboard({
               </button>
             </div>
 
-            {/* Added Value Widget: Recent Bookings Activity Feed */}
+            {/* Active Bookings Timetable Log */}
             <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="font-display font-bold text-base text-on-surface">Active Bookings Timetable</h3>
@@ -331,7 +315,7 @@ export default function Dashboard({
               </div>
             )}
 
-            {/* Restored Recommended Courts Card */}
+            {/* Recommended Courts Card */}
             <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm space-y-4">
               <span className="text-[10px] font-mono text-outline font-bold uppercase tracking-widest block">
                 RECOMMENDED COURTS
