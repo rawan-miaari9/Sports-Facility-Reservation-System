@@ -98,12 +98,25 @@ export function AuthForm() {
         return;
       }
 
+      // 1. Save Token
       if (data.token) {
         localStorage.setItem("token", data.token);
       }
 
-      const userRole = data.user?.role || data.role || "user";
-      handleLoginSuccess(userRole);
+      // 2. Extract & Save complete user details to localStorage
+      // Fall back through common API response structures
+      const userPayload = data.user || data.data?.user || data;
+      const userObj = {
+        id: userPayload.id || userPayload._id || userPayload.userId || "usr_admin",
+        name: userPayload.name || userPayload.fullName || userPayload.username || "Admin User",
+        email: userPayload.email || loginData.email,
+        role: userPayload.role || data.role || "user",
+      };
+
+      localStorage.setItem("user", JSON.stringify(userObj));
+
+      // 3. Navigate
+      handleLoginSuccess(userObj.role);
     } catch (error) {
       setErrorMessage("Something went wrong");
     }

@@ -10,18 +10,21 @@ export type AppView =
 
 export interface User {
   id: string;
+  _id?: string; // Support for MongoDB backend IDs
+  userId?: string;
   name: string;
   email: string;
-  phone: string;
-  dateOfBirth: string;
-  memberSince: string;
-  bookingsCount: number;
-  status: 'Available' | 'Booked' | 'Suspended';
-  role: 'Admin' | 'Athlete';
+  phone?: string;
+  dateOfBirth?: string;
+  memberSince?: string;
+  bookingsCount?: number;
+  status?: 'Available' | 'Booked' | 'Suspended';
+  role: 'admin' | 'user' ; // Flexible case matching for role checks
 }
 
 export interface Facility {
   id: string;
+  _id?: string;
   name: string;
   type: string;
   location: string;
@@ -37,12 +40,14 @@ export interface Facility {
 
 export interface Reservation {
   id: string;
+  _id?: string;
   facilityId: string;
   facilityName: string;
   facilityImage: string;
   sport: string;
   userName: string;
   userEmail: string;
+  userId?: string; // Needed for user-specific filtering
   date: string;
   timeSlot: string;
   price: number;
