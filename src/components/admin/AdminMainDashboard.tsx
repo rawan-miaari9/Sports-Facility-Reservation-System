@@ -11,7 +11,7 @@ import { AppView, User as AdminUser } from '@/types/admin/admin';
 import FacilitiesView from '@/components/facilities/FacilitiesView';
 import ManageFacilityView from '@/components/ManageFacilityView';
 import SettingsView from '@/components/SettingsView';
-import { User } from '../../types'; 
+import { User } from '../../types';
 import { AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -61,25 +61,25 @@ function getStoredUser(): AdminUser | null {
   const decoded = decodeJwtPayload(token);
   if (!decoded) return null;
 
-  const resolvedName = 
-    decoded.name || 
-    decoded.fullName || 
-    decoded.username || 
-    decoded.user?.name || 
-    decoded.user?.fullName || 
+  const resolvedName =
+    decoded.name ||
+    decoded.fullName ||
+    decoded.username ||
+    decoded.user?.name ||
+    decoded.user?.fullName ||
     decoded.user?.username;
 
-  const resolvedEmail = 
-    decoded.email || 
-    decoded.user?.email || 
+  const resolvedEmail =
+    decoded.email ||
+    decoded.user?.email ||
     'admin@clinic.com';
 
-  const resolvedId = 
-    decoded.userId || 
-    decoded.id || 
-    decoded._id || 
-    decoded.user?.id || 
-    decoded.user?._id || 
+  const resolvedId =
+    decoded.userId ||
+    decoded.id ||
+    decoded._id ||
+    decoded.user?.id ||
+    decoded.user?._id ||
     'usr_admin';
 
   return {
@@ -136,7 +136,7 @@ export default function AdminMainDashboard() {
     if (typeof window !== 'undefined') {
       const cached = localStorage.getItem('admin_stats_cache');
       if (cached) {
-        try { return JSON.parse(cached); } catch (e) {}
+        try { return JSON.parse(cached); } catch (e) { }
       }
     }
     return {
@@ -153,7 +153,7 @@ export default function AdminMainDashboard() {
     if (typeof window !== 'undefined') {
       const cached = localStorage.getItem('admin_reservations_cache');
       if (cached) {
-        try { return JSON.parse(cached); } catch (e) {}
+        try { return JSON.parse(cached); } catch (e) { }
       }
     }
     return [];
@@ -203,7 +203,7 @@ export default function AdminMainDashboard() {
       setIsLoading(true);
     }
     setErrorMessage(null);
-    
+
     try {
       const token = localStorage.getItem('token');
 
@@ -263,7 +263,7 @@ export default function AdminMainDashboard() {
   const handleUpdateReservationStatus = (bookingId: string, targetStatus: string) => {
     const previousReservations = [...recentReservations];
 
-    const updatedReservations = recentReservations.map((b) => 
+    const updatedReservations = recentReservations.map((b) =>
       (b.id === bookingId || b._id === bookingId) ? { ...b, status: targetStatus } : b
     );
 
@@ -294,7 +294,7 @@ export default function AdminMainDashboard() {
   const handleDeleteReservation = (bookingId: string) => {
     const previousReservations = [...recentReservations];
 
-    const updatedReservations = recentReservations.filter((b) => 
+    const updatedReservations = recentReservations.filter((b) =>
       b.id !== bookingId && b._id !== bookingId
     );
 
@@ -353,8 +353,8 @@ export default function AdminMainDashboard() {
                 }} />
               </div>
             </div>
-            <ActiveBookingsRoster 
-              reservations={recentReservations} 
+            <ActiveBookingsRoster
+              reservations={recentReservations}
               onApproveBooking={(id) => handleUpdateReservationStatus(id, 'Confirmed')}
             />
           </div>
@@ -364,6 +364,7 @@ export default function AdminMainDashboard() {
         return (
           <FacilitiesView
             currentUser={currentUser}
+            reservations={recentReservations}
             onNavigateToManage={handleNavigateToManage}
           />
         );
@@ -380,7 +381,7 @@ export default function AdminMainDashboard() {
             onSaveFacility={() => {
               setFacilityToEdit(null);
               setCurrentView('facilities');
-              fetchDashboardData(); 
+              fetchDashboardData();
             }}
           />
         );

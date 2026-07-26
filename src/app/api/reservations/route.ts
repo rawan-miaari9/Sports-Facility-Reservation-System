@@ -42,6 +42,7 @@ export async function GET(request: Request) {
       const matchedUser: any = userMap.get((b.userId || b.user)?.toString()) || {};
       return {
         id: b._id.toString(),
+        facilityId: b.facilityId?.toString(),
         userId: (b.userId || b.user || '').toString(),
         userName: b.userName || matchedUser.name || 'Rawan',
         userEmail: b.userEmail || matchedUser.email || '',

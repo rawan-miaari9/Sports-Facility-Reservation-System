@@ -31,7 +31,7 @@ export default function Dashboard({
   onNavigate,
   onCancelReservation: externalCancelReservation 
 }: DashboardProps) {
-  const isAdmin = currentUser?.role === 'Admin';
+  const isAdmin = currentUser?.role === 'admin';
   
   // Initialize state with props immediately so the screen is never blank
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
