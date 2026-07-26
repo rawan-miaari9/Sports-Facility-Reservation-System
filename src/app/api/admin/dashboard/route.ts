@@ -102,7 +102,9 @@ export async function GET() {
         b.guestName || b.userName || userObj.name || userObj.fullName || userObj.email || 'Client';
 
       return {
+        
         id: b._id ? b._id.toString() : `RES-${Math.random()}`,
+        facilityId: b.facilityId?.toString(),
         facilityName: resolvedFacilityName,
         userName: resolvedUserName,
         userEmail: b.guestEmail || userObj.email || b.userEmail || 'N/A',

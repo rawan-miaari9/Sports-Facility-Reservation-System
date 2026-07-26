@@ -16,3 +16,14 @@ export async function createReservation(reservationData: any) {
   if (!res.ok) throw new Error('Failed to create reservation');
   return await res.json();
 }
+
+export async function fetchReservations() {
+  const res = await fetch('/api/reservations', {
+    cache: 'no-store',
+  });
+
+  if (!res.ok) throw new Error('Failed to fetch reservations');
+
+  const json = await res.json();
+  return json.data;
+}
