@@ -6,11 +6,11 @@ import AdminHeader from './header';
 import AdminStatsGrid from './adminStatsGrid';
 import OperationsLauncher from './OperationsLauncher';
 import ActiveBookingsRoster from './ActiveBookingRoster';
-import AdminReservationsView from '../adminreservationview';
+import AdminReservationsView from '@/components/AdminReservationView/AdminReservationsView';
 import { AppView, User as AdminUser } from '@/types/admin/admin';
 import FacilitiesView from '@/components/facilities/FacilitiesView';
-import ManageFacilityView from '@/components/ManageFacilityView';
-import SettingsView from '@/components/SettingsView';
+import ManageFacilityView from '@/components/ManageFacilityView/ManageFacilityView';
+import SettingsView from '@/components/AdminSettingView/SettingsView';
 import { User } from '../../types';
 import { AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -72,7 +72,7 @@ function getStoredUser(): AdminUser | null {
   const resolvedEmail =
     decoded.email ||
     decoded.user?.email ||
-    'admin@clinic.com';
+    'admin@AlthleticClub.com';
 
   const resolvedId =
     decoded.userId ||
@@ -104,32 +104,6 @@ export default function AdminMainDashboard() {
       role: 'admin',
     };
   });
-
-  // Roster Users State for UserManagementView
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: 'usr-1',
-      name: 'Sarah Jenkins',
-      email: 'sarah.jenkins@gmail.com',
-      phone: '+1 (555) 014-4829',
-      dateOfBirth: '1995-04-12',
-      memberSince: 'Jul 2026',
-      bookingsCount: 12,
-      status: 'Available',
-      role: 'user',
-    },
-    {
-      id: 'usr-2',
-      name: 'Marcus Vance',
-      email: 'marcus.vance@athletic.com',
-      phone: '+1 (555) 019-2831',
-      dateOfBirth: '1988-11-03',
-      memberSince: 'Jan 2026',
-      bookingsCount: 45,
-      status: 'Available',
-      role: 'admin',
-    }
-  ]);
 
   // Synchronously seed stats from cache to render UI instantly
   const [stats, setStats] = useState(() => {
@@ -194,7 +168,7 @@ export default function AdminMainDashboard() {
       localStorage.removeItem('user');
       localStorage.removeItem('admin_stats_cache');
       localStorage.removeItem('admin_reservations_cache');
-      router.push('/auth');
+      router.push('/');
     }
   };
 
@@ -356,6 +330,7 @@ export default function AdminMainDashboard() {
             <ActiveBookingsRoster
               reservations={recentReservations}
               onApproveBooking={(id) => handleUpdateReservationStatus(id, 'Confirmed')}
+              onRejectBooking={(id) => handleUpdateReservationStatus(id, 'Cancelled')}
             />
           </div>
         );
