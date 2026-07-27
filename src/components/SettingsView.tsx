@@ -4,7 +4,6 @@ import {
   Mail, 
   Phone, 
   Calendar, 
-  ShieldCheck, 
   Save, 
   CheckCircle2, 
   Lock,
@@ -30,7 +29,6 @@ interface SettingsViewProps {
 export default function SettingsView({ currentUser, onUpdateProfile }: SettingsViewProps) {
   const userId = currentUser._id || currentUser.id;
 
-  // Format date for <input type="date" /> (YYYY-MM-DD)
   const formatDateForInput = (dateVal?: string | Date) => {
     if (!dateVal) return '';
     try {
@@ -54,18 +52,15 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
   const getDobValue = (user: typeof currentUser) => 
     formatDateForInput(user?.dateOfBirth || user?.dob || user?.birthDate);
 
-  // Form State
   const [name, setName] = useState(currentUser?.name || '');
   const [email, setEmail] = useState(currentUser?.email || '');
   const [phone, setPhone] = useState(() => getPhoneValue(currentUser));
   const [dob, setDob] = useState(() => getDobValue(currentUser));
 
-  // Password State
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Status & Validation States
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
@@ -74,7 +69,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
 
-  // Sync state whenever currentUser prop updates (e.g. after fresh DB fetch)
   useEffect(() => {
     if (currentUser) {
       setName(currentUser.name || '');
@@ -84,7 +78,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
     }
   }, [currentUser]);
 
-  // Fetch full user record from MongoDB on mount
   useEffect(() => {
     async function fetchFreshUserData() {
       if (!userId) return;
@@ -106,7 +99,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
     ? new Date(currentUser.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     : 'N/A';
 
-  // Handler: Save Profile
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileErrors({});
@@ -161,7 +153,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
     }
   };
 
-  // Handler: Change Password
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordErrors({});
@@ -226,10 +217,8 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Forms */}
         <div className="lg:col-span-8 space-y-8">
           
-          {/* Profile Details Form */}
           <form onSubmit={handleProfileSave}>
             <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm space-y-5">
               <span className="block text-[10px] font-mono text-outline font-bold uppercase tracking-widest border-b border-outline-variant/60 pb-3">
@@ -251,7 +240,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Full Name */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-mono uppercase tracking-wider text-outline font-bold">Full Name</label>
                   <div className="relative">
@@ -268,7 +256,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
                   )}
                 </div>
 
-                {/* Email */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-mono uppercase tracking-wider text-outline font-bold">Email Address</label>
                   <div className="relative">
@@ -285,7 +272,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
                   )}
                 </div>
 
-                {/* Phone */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-mono uppercase tracking-wider text-outline font-bold">Phone Number</label>
                   <div className="relative">
@@ -303,7 +289,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
                   )}
                 </div>
 
-                {/* Date of Birth */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-mono uppercase tracking-wider text-outline font-bold">Date of Birth</label>
                   <div className="relative">
@@ -341,7 +326,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
             </div>
           </form>
 
-          {/* Change Password Form */}
           <form onSubmit={handlePasswordChange}>
             <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm space-y-5">
               <span className="block text-[10px] font-mono text-outline font-bold uppercase tracking-widest border-b border-outline-variant/60 pb-3">
@@ -363,7 +347,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
               )}
 
               <div className="space-y-4">
-                {/* Current Password */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-mono uppercase tracking-wider text-outline font-bold">Current Password</label>
                   <div className="relative">
@@ -382,7 +365,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* New Password */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-mono uppercase tracking-wider text-outline font-bold">New Password</label>
                     <div className="relative">
@@ -400,7 +382,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
                     )}
                   </div>
 
-                  {/* Confirm Password */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-mono uppercase tracking-wider text-outline font-bold">Confirm New Password</label>
                     <div className="relative">
@@ -441,7 +422,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
           </form>
         </div>
 
-        {/* Right Column: Summary Card */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm text-center space-y-4">
             <span className="block text-[10px] font-mono text-outline font-bold uppercase tracking-widest">
@@ -468,7 +448,6 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
               </div>
             </div>
           </div>
-          
         </div>
       </div>
     </div>

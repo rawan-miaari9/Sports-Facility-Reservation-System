@@ -13,34 +13,34 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 });
     }
 
-    // Build a query that matches either a string ID or an ObjectId
     let userQuery;
     try {
       userQuery = {
         $or: [
           { userId: userId },
           { userId: new mongoose.Types.ObjectId(userId) }
-        ],
-        status: 'confirmed'
+        ]
       };
     } catch (e) {
-      userQuery = { userId: userId, status: 'confirmed' };
+      userQuery = { userId: userId };
     }
 
-    const bookings = await Booking.find(userQuery);
+    const bookings = await Booking.find(userQuery).lean();
 
     let monthlyInvestment = 0;
     let hoursCompleted = 0;
     const confirmedSlotsCount = bookings.length;
 
-    bookings.forEach((booking) => {
-      monthlyInvestment += booking.totalPrice || 0;
+    bookings.forEach((booking: any) => {
+      monthlyInvestment += booking.price || booking.totalPrice || 0;
 
-      if (booking.startTime && booking.endTime) {
-        const [startHour, startMin] = booking.startTime.split(':').map(Number);
-        const [endHour, endMin] = booking.endTime.split(':').map(Number);
+      const slot = booking.timeSlot;
+      if (slot && slot.includes('-')) {
+        const [start, end] = slot.split('-').map((s: string) => s.trim());
+        const [startHour, startMin] = start.split(':').map(Number);
+        const [endHour, endMin] = end.split(':').map(Number);
         
-        const durationInHours = (endHour + endMin / 60) - (startHour + startMin / 60);
+        const durationInHours = (endHour + (startMin || 0) / 60) - (startHour + (endMin || 0) / 60);
         if (durationInHours > 0) {
           hoursCompleted += durationInHours;
         }

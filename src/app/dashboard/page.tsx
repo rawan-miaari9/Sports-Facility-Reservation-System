@@ -15,6 +15,13 @@ export default function DashboardPage() {
     role: 'Athlete'
   });
   const [reservations, setReservations] = useState([]);
+  
+  // Add state for stats
+  const [stats, setStats] = useState({
+    monthlyInvestment: 0,
+    hoursCompleted: 0,
+    confirmedSlotsCount: 0
+  });
 
   useEffect(() => {
     async function fetchUserAndData() {
@@ -30,12 +37,18 @@ export default function DashboardPage() {
           const resRes = await fetch(`/api/reservations?userId=${loggedUser.userId}`);
           const resJson = await resRes.json();
           
-          // 👀 ADD THE LOG HERE:
-          console.log("Dashboard reservations fetched:", resJson);
-
           if (resJson.success) {
             setReservations(resJson.data);
           }
+
+          // Fetch user stats from the new stats API route
+          const statsRes = await fetch(`/api/users/stats?userId=${loggedUser.userId}`);
+          const statsJson = await statsRes.json();
+          
+          if (statsRes.ok) {
+            setStats(statsJson);
+          }
+
         } else {
           router.push('/auth');
         }
@@ -69,6 +82,7 @@ export default function DashboardPage() {
           currentUser={currentUser as any}
           facilities={INITIAL_FACILITIES}
           reservations={reservations}
+          stats={stats} 
           onNavigate={(view) => {
             router.push(`/${view}`);
           }}

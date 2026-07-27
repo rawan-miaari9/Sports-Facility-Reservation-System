@@ -71,7 +71,7 @@ export default function Header({ currentUser }: HeaderProps) {
             {/* Navigation Options (Dashboard removed, router paths aligned) */}
             <div className="py-2 px-2 space-y-1">
               <button 
-                onClick={() => { setIsOpen(false); router.push('/facilities/Booking'); }}
+                onClick={() => { setIsOpen(false); router.push('/facilities'); }}
                 className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl hover:bg-slate-800 transition text-slate-300 hover:text-white"
               >
                 <Dumbbell className="w-4 h-4 text-blue-400" />
@@ -85,7 +85,7 @@ export default function Header({ currentUser }: HeaderProps) {
                 <span>Reservations History</span>
               </button>
               <button 
-                onClick={() => { setIsOpen(false); router.push('/settings'); }}
+                onClick={() => { setIsOpen(false); router.push('/UserSettings'); }}
                 className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl hover:bg-slate-800 transition text-slate-300 hover:text-white"
               >
                 <Settings className="w-4 h-4 text-blue-400" />

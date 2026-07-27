@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Info, Loader2 } from 'lucide-react';
-import { fetchFacilities, createReservation } from '@/services/facilityService';
+import {
+  fetchFacilities,
+  fetchReservations,
+  createReservation,
+} from '@/services/facilityService';
 
 import { FacilityFilterBar } from './FacilityFilterBar';
 import { FacilityCard } from './FacilityCard';
@@ -92,9 +96,12 @@ export default function FacilitiesView({
   onClearDeepSelected
 }: FacilitiesViewProps) {
   const isAdmin = currentUser?.role === 'admin';
+  console.log("Current user:", currentUser);
+console.log("isAdmin:", isAdmin); 
   const getTodayString = () => new Date().toISOString().split('T')[0];
 
   const [facilities, setFacilities] = useState<Facility[]>([]);
+
   const [isFetching, setIsFetching] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -121,12 +128,16 @@ export default function FacilitiesView({
 
   useEffect(() => {
     let isMounted = true;
-    
+
     async function loadData() {
       try {
         setIsFetching(true);
-        const data = await fetchFacilities();
-        if (isMounted) setFacilities(data || []);
+
+        const facilitiesData = await fetchFacilities();
+
+        if (isMounted) {
+          setFacilities(facilitiesData || []);
+        }
       } catch (err) {
         console.error('Failed to load facilities:', err);
       } finally {
@@ -250,7 +261,7 @@ export default function FacilitiesView({
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     <div className="flex-1 flex overflow-hidden bg-background relative h-full">
       <div className="flex-1 overflow-y-auto px-8 py-8 space-y-6 custom-scrollbar">
