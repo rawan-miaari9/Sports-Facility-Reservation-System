@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import SettingsView from '../../components/SettingsView';
+import SettingsView from '../../components/SettingsVieww';
 import Header from '../../components/Header'; 
 import { useRouter } from 'next/navigation';
 

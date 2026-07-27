@@ -28,7 +28,7 @@ export default function Sidebar({
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'user'] },
     { id: 'facilities', label: 'Arenas & Booking', icon: Dumbbell, roles: ['admin', 'user'] },
-    { id: 'reservations', label: 'Reservations History', icon: CalendarDays, roles: ['admin', 'user'] },
+    { id: 'reservations', label: 'Manage Reservations', icon: CalendarDays, roles: ['admin', 'user'] },
     { id: 'users', label: 'User Management', icon: Users, roles: ['admin'] },
     { id: 'settings', label: 'Profile & Settings', icon: Settings, roles: ['admin', 'user'] }
   ];
@@ -56,9 +56,6 @@ export default function Sidebar({
 
       {/* Navigation Links */}
       <nav className="flex-1 px-4 py-8 flex flex-col gap-1.5">
-        <span className="px-3 text-[10px] font-mono text-white/30 uppercase tracking-wider font-bold mb-2 block">
-          CORE GRID
-        </span>
         
         {filteredNavItems.map(item => {
           const Icon = item.icon;

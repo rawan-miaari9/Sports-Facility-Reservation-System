@@ -98,7 +98,7 @@ export function AuthForm() {
         return;
       }
 
-      // 1. Save Token to localStorage & Cookies (for Middleware/SSR compatibility)
+      // Save Token to localStorage & Cookies
       if (data.token) {
         localStorage.setItem("token", data.token);
         document.cookie = `token=${data.token}; path=/; max-age=604800; SameSite=Lax`;
@@ -114,11 +114,11 @@ export function AuthForm() {
 
       localStorage.setItem("user", JSON.stringify(userObj));
 
-      // 2. Dispatch custom auth update event so App/Context updates instantly
+      // Dispatch custom auth update event so App/Context updates instantly
       window.dispatchEvent(new Event("auth-change"));
       window.dispatchEvent(new Event("storage"));
 
-      // 3. Navigate to dashboard
+      //Navigate to dashboard
       handleLoginSuccess(userObj.role);
     } catch (error) {
       setErrorMessage("Something went wrong");
@@ -185,9 +185,7 @@ export function AuthForm() {
               <span className="font-display font-black text-xl tracking-wider text-primary uppercase">
                 Athletic<span className="text-primary-container">Hub</span>
               </span>
-              <span className="block text-[9px] font-mono tracking-widest text-outline uppercase font-bold">
-                Elite Performance Facility
-              </span>
+              
             </div>
           </div>
 

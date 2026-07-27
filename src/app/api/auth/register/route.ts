@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // 1. Validate payload against schema FIRST
+    // Validate payload against schema FIRST
     const validation = registerSchema.safeParse(body);
     
     // If validation fails, return 400 immediately
@@ -19,13 +19,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. ONLY destructure validation.data AFTER checking validation.success
+    // ONLY destructure validation.data AFTER checking validation.success
     const { name, email, phone, dateOfBirth, password } = validation.data;
     const role = body.role || "user";
 
     await connectDB();
 
-    // 3. Check if user already exists
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json(
@@ -34,10 +34,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // 4. Hash password
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 5. Save new user (Parse date safely for Mongoose)
+    //  Save new user
     const newUser = await User.create({
       name,
       email,

@@ -12,7 +12,7 @@ export default function DashboardPage() {
     userId: '',
     name: 'Loading...',
     email: '',
-    role: 'Athlete'
+    role: 'user'
   });
   const [reservations, setReservations] = useState([]);
   

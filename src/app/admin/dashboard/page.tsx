@@ -14,7 +14,6 @@ export default function AdminDashboardPage() {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      // Redirect to auth page if token is missing
       router.replace("/auth");
       return;
     }
