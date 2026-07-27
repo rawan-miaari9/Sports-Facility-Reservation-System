@@ -98,13 +98,12 @@ export function AuthForm() {
         return;
       }
 
-      // 1. Save Token
+      // 1. Save Token to localStorage & Cookies (for Middleware/SSR compatibility)
       if (data.token) {
         localStorage.setItem("token", data.token);
+        document.cookie = `token=${data.token}; path=/; max-age=604800; SameSite=Lax`;
       }
 
-      // 2. Extract & Save complete user details to localStorage
-      // Fall back through common API response structures
       const userPayload = data.user || data.data?.user || data;
       const userObj = {
         id: userPayload.id || userPayload._id || userPayload.userId || "usr_admin",
@@ -115,7 +114,11 @@ export function AuthForm() {
 
       localStorage.setItem("user", JSON.stringify(userObj));
 
-      // 3. Navigate
+      // 2. Dispatch custom auth update event so App/Context updates instantly
+      window.dispatchEvent(new Event("auth-change"));
+      window.dispatchEvent(new Event("storage"));
+
+      // 3. Navigate to dashboard
       handleLoginSuccess(userObj.role);
     } catch (error) {
       setErrorMessage("Something went wrong");
@@ -150,7 +153,8 @@ export function AuthForm() {
         return;
       }
 
-      setSuccessMessage("Registration successful");
+      setSuccessMessage("Registration successful. Please sign in.");
+      setIsLogin(true);
     } catch (error) {
       setErrorMessage("Something went wrong");
     }
@@ -257,7 +261,7 @@ export function AuthForm() {
             </form>
           ) : (
             /* Register Form */
-            <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4 ">
+            <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
               <Input
                 type="text"
                 placeholder="Full Name"

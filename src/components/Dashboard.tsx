@@ -32,7 +32,7 @@ export default function Dashboard({
   onNavigate,
   onCancelReservation 
 }: DashboardProps) {
-  const isAdmin = currentUser.role === 'Admin';
+  const isAdmin = currentUser.role === 'admin';
   
   // States for interactive UI
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<string>('2026-07-21');
