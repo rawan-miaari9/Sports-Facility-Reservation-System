@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Activity, 
   MapPin, 
   Users, 
   Clock, 
   ChevronRight, 
+  ChevronLeft,
   Compass, 
-  ShieldCheck, 
   Sparkles, 
   ArrowRight,
-  TrendingUp,
-  Award
+  Zap
 } from 'lucide-react';
 import { Facility } from '../types';
 
@@ -29,23 +28,78 @@ export default function LandingPage({
 }: LandingPageProps) {
   const [selectedSport, setSelectedSport] = useState('All');
   const [searchDate, setSearchDate] = useState('');
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  const featuredFacilities = facilities.slice(0, 3);
+  // Verified, reliable sports image URLs without swimming, using direct static Unsplash assets
+  const heroSlides = [
+    {
+      id: 'slide-1',
+      name: 'Championship Hardwood Arena',
+      type: 'Basketball',
+      location: 'Main Stadium Complex',
+      pricePerHour: 120,
+      image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1600&auto=format&fit=crop&q=80',
+      tag: 'NBA-Standard Maple Flooring'
+    },
+   {
+      id: 'slide-2',
+      name: 'Panoramic Glass Padel Arena',
+      type: 'Padel',
+      location: 'Rooftop Sports Deck',
+      pricePerHour: 110,
+      image: '/padel-court.png',
+      tag: 'Tempered Glass & Turf'
+    },
+    {
+      id: 'slide-3',
+      name: 'Panoramic Glass Padel Arena',
+      type: 'Padel',
+      location: 'Rooftop Sports Deck',
+      pricePerHour: 110,
+      image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1600&auto=format&fit=crop&q=80',
+      tag: 'Tempered Glass & Turf'
+    },
+    {
+      id: 'slide-4',
+      name: 'Professional FIFA Turf Pitch',
+      type: 'Soccer',
+      location: 'Suburban Athletic Ground',
+      pricePerHour: 140,
+      image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1600&auto=format&fit=crop&q=80',
+      tag: 'All-Weather Hybrid Grass'
+    }
+  ];
+
+  // Robust auto-advance timer for smooth carousel sliding
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+  };
 
   return (
     <div className="min-h-screen bg-background font-sans selection:bg-primary-container selection:text-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 glass-card border-b border-outline-variant px-6 py-4">
+      <header className="sticky top-0 z-50 glass-card border-b border-outline-variant px-6 py-3 bg-white/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-primary text-white p-2.5 rounded-xl shadow-md shadow-primary/20 flex items-center justify-center">
-              <Activity className="h-6 w-6 animate-pulse" />
+            <div className="bg-primary text-white p-2 rounded-xl shadow-md shadow-primary/20 flex items-center justify-center">
+              <Activity className="h-5 w-5 animate-pulse" />
             </div>
             <div>
-              <span className="font-display font-black text-xl tracking-wider text-primary uppercase">
+              <span className="font-display font-black text-lg tracking-wider text-primary uppercase">
                 Athletic<span className="text-primary-container">Hub</span>
               </span>
-              <span className="block text-[9px] font-mono tracking-widest text-outline uppercase font-bold">
+              <span className="block text-[8px] font-mono tracking-widest text-outline uppercase font-bold">
                 Elite Performance Facility
               </span>
             </div>
@@ -66,15 +120,13 @@ export default function LandingPage({
           <div className="flex items-center gap-4">
             <button 
               onClick={onLoginClick}
-              className="px-5 py-2 text-sm font-semibold text-primary hover:text-primary-container transition-colors rounded-xl hover:bg-surface-container"
-              id="landing-btn-login"
+              className="px-4 py-2 text-sm font-semibold text-primary hover:text-primary-container transition-colors rounded-xl hover:bg-surface-container cursor-pointer"
             >
               Sign In
             </button>
             <button 
               onClick={onGetStarted}
-              className="px-6 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary-container rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 group cursor-pointer"
-              id="landing-btn-register"
+              className="px-5 py-2 text-sm font-bold text-white bg-primary hover:bg-primary-container rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 group cursor-pointer"
             >
               Book Premium Slot
               <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -83,118 +135,149 @@ export default function LandingPage({
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-24 md:pt-20 md:pb-32 px-6">
-        <div className="absolute inset-0 bg-gradient-to-tr from-surface-container-low via-background to-surface-container-low -z-10" />
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10" />
-        <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-secondary/5 rounded-full blur-3xl -z-10" />
+      {/* Hero Section: Full Screen Viewport with Carousel at the Center */}
+      <section className="relative w-full h-[calc(100vh-73px)] min-h-[620px] overflow-hidden bg-slate-950 flex flex-col justify-between">
+        {heroSlides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              index === currentSlide ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-105 pointer-events-none'
+            }`}
+          >
+            <img 
+              src={slide.image} 
+              alt={slide.name}
+              className="w-full h-full object-cover transition-transform duration-1000 ease-out"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/40" />
+          </div>
+        ))}
 
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          {/* Hero Text */}
-          <div className="lg:col-span-7 flex flex-col items-start gap-6">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3.5 py-1.5 rounded-full text-xs font-bold font-mono uppercase tracking-wider">
-              <Sparkles className="h-3.5 w-3.5" />
-              Dynamic Booking Engine Live
-            </div>
+        {/* Top Header/Title Overlay */}
+        <div className="relative z-20 max-w-7xl mx-auto w-full pt-6 md:pt-8 px-6 flex flex-col items-center text-center">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white border border-white/20 px-4 py-1.5 rounded-full text-xs font-bold font-mono uppercase tracking-wider shadow-lg">
+            <Sparkles className="h-4 w-4 text-secondary" />
+            Dynamic Booking Engine Live
+          </div>
+          
+          <h1 className="font-display font-black text-3xl sm:text-5xl md:text-6xl text-white tracking-tight mt-3 max-w-4xl drop-shadow-md">
+            Access & Book <span className="text-secondary ">Elite Performance</span> Facilities
+          </h1>
+        </div>
+
+        {/* Bottom Carousel Card & Search Panel */}
+        <div className="relative z-20 max-w-7xl mx-auto w-full px-6 pb-8 md:pb-12">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             
-            <h1 className="font-display font-black text-4xl sm:text-5xl md:text-6xl text-[#0b1320] leading-[1.1] tracking-tight">
-              Access & Book <br />
-              <span className="text-primary relative">
-                Elite Performance
-                <span className="absolute bottom-1.5 left-0 w-full h-2 bg-secondary-container -z-10 rounded" />
-              </span> <br />
-              Facilities On-Demand
-            </h1>
+            {/* Active Slide Info Box */}
+            <div className="text-white flex flex-col gap-2 max-w-2xl bg-black/50 backdrop-blur-xl p-6 rounded-3xl border border-white/15 shadow-2xl">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="bg-secondary text-white text-xs font-mono font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                  {heroSlides[currentSlide].type}
+                </span>
+                <span className="text-xs font-mono text-white/90 flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full backdrop-blur-md">
+                  <MapPin className="h-3.5 w-3.5 text-secondary" /> {heroSlides[currentSlide].location}
+                </span>
+                <span className="text-xs font-mono text-secondary-container flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full backdrop-blur-md">
+                  <Zap className="h-3.5 w-3.5 text-secondary" /> {heroSlides[currentSlide].tag}
+                </span>
+              </div>
+              
+              <h3 className="font-display font-black text-2xl sm:text-3xl text-white tracking-tight">
+                {heroSlides[currentSlide].name}
+              </h3>
+              
+              <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-1">
+                <div>
+                  <span className="block text-[10px] font-mono uppercase tracking-wider text-white/70">Hourly Rate</span>
+                  <span className="font-display font-black text-2xl text-white">
+                    ${heroSlides[currentSlide].pricePerHour}
+                    <span className="text-xs font-normal text-white/70"> / hr</span>
+                  </span>
+                </div>
+                <button 
+                  onClick={() => {
+                    onGetStarted();
+                    const matchedFacility = facilities.find(f => f.type === heroSlides[currentSlide].type) || facilities[0];
+                    if (matchedFacility) onSelectFacility(matchedFacility);
+                  }}
+                  className="bg-primary hover:bg-primary-container text-white px-6 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer shadow-xl flex items-center gap-2"
+                >
+                  Book Arena Now
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
 
-            <p className="text-on-surface-variant text-base sm:text-lg max-w-xl leading-relaxed">
-              Ditch the coordination chaos. AthleticHub streamlines championship-grade hardwood courts, red clay tennis arenas, heated Olympic swimming lanes, and panoramic glass padel stadiums for athletes and team operations.
-            </p>
-
-            {/* Quick search panel */}
-            <div className="w-full max-w-2xl bg-white p-4 rounded-2xl shadow-xl shadow-surface-container-high/40 border border-outline-variant flex flex-col md:flex-row gap-4 items-stretch md:items-center mt-4">
-              <div className="flex-1 flex flex-col gap-1.5">
-                <label className="text-[10px] font-mono uppercase tracking-wider text-outline font-bold">Select Sport</label>
+            {/* Quick Search Panel */}
+            <div className="bg-white/95 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-white/20 flex flex-col sm:flex-row gap-3 items-center w-full lg:w-auto">
+              <div className="w-full sm:w-40 flex flex-col gap-1 px-1">
+                <label className="text-[10px] font-mono uppercase tracking-wider text-outline font-bold text-left">Sport</label>
                 <select 
                   value={selectedSport}
                   onChange={(e) => setSelectedSport(e.target.value)}
-                  className="w-full bg-transparent font-medium text-sm text-on-surface focus:outline-none cursor-pointer"
+                  className="w-full bg-surface-container-low p-2 rounded-xl font-medium text-xs text-on-surface focus:outline-none cursor-pointer border border-outline-variant"
                 >
                   <option value="All">All Sports</option>
                   <option value="Basketball">Basketball</option>
                   <option value="Tennis">Tennis</option>
                   <option value="Soccer">Soccer</option>
                   <option value="Padel">Padel</option>
-                  <option value="Aquatics">Aquatics</option>
                 </select>
               </div>
 
-              <div className="w-px h-10 bg-outline-variant hidden md:block" />
-
-              <div className="flex-1 flex flex-col gap-1.5">
-                <label className="text-[10px] font-mono uppercase tracking-wider text-outline font-bold">Booking Date</label>
+              <div className="w-full sm:w-40 flex flex-col gap-1 px-1">
+                <label className="text-[10px] font-mono uppercase tracking-wider text-outline font-bold text-left">Date</label>
                 <input 
                   type="date"
                   value={searchDate}
                   onChange={(e) => setSearchDate(e.target.value)}
-                  className="w-full bg-transparent font-medium text-sm text-on-surface focus:outline-none cursor-pointer"
+                  className="w-full bg-surface-container-low p-2 rounded-xl font-medium text-xs text-on-surface focus:outline-none cursor-pointer border border-outline-variant"
                 />
               </div>
 
               <button 
                 onClick={onGetStarted}
-                className="bg-primary hover:bg-primary-container text-white px-6 py-3.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-primary/20"
-                id="landing-search-submit"
+                className="w-full sm:w-auto bg-primary hover:bg-primary-container text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-primary/25 mt-auto"
               >
-                Search Available
+                Search
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="flex items-center gap-6 mt-2 font-mono text-xs text-outline">
-              <div className="flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-secondary" /> Inspected Facilities
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-secondary" /> Real-Time Reservations
-              </div>
-            </div>
           </div>
+        </div>
 
-          {/* Hero Image / Badge */}
-          <div className="lg:col-span-5 relative">
-            <div className="absolute inset-0 bg-primary/10 rounded-3xl rotate-3 scale-102 -z-10" />
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white aspect-[4/3] group">
-              <img 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwRAqA54Xj8BLBMGU1Nid7Fhm7SckGPhkqcIt6GqJZwzRd6UfFJOQvlumVpLJxQ74R6Y2g9ndw47dX4v-UNz8CYOPpNySDEJTRW-nEgJKqcUeI2QzyRMdYJSE-8AynqCtZY6Ty1E0b29p1h6Z7PnY4wsEFNjGtCoXpTbWkTejXSAtoTTSMVnSUUr3Q8C0An2cebDoq1jxOGdtmkYA6zG_ZHJjxapzg5hpcz4qFGadSD3sZH8sM9XqadrmAuxIeue_XukyQeBMjnug" 
-                alt="Elite athlete sprinting in modern athletic facility"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6 text-white p-4 glass-card border border-white/20 rounded-2xl">
-                <div className="flex items-center gap-3">
-                  <div className="bg-secondary p-1.5 rounded-lg text-white">
-                    <Award className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-display font-bold text-sm text-white">Championship Standards</h4>
-                    <p className="text-white/80 text-[11px] font-sans">Every venue certified for competitive dimensions and safety surfaces.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* Carousel Navigation Buttons */}
+        <button 
+          onClick={prevSlide}
+          className="absolute left-6 top-1/2 -translate-y-1/2 z-30 bg-black/50 hover:bg-black/80 text-white p-3.5 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-lg hover:scale-110 hidden sm:flex items-center justify-center"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <button 
+          onClick={nextSlide}
+          className="absolute right-6 top-1/2 -translate-y-1/2 z-30 bg-black/50 hover:bg-black/80 text-white p-3.5 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-lg hover:scale-110 hidden sm:flex items-center justify-center"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </button>
 
-            {/* Float Badge */}
-            <div className="absolute -top-6 -left-6 bg-white p-4 rounded-2xl shadow-xl border border-outline-variant flex items-center gap-3 animate-bounce-subtle">
-              <div className="bg-secondary-container p-2 rounded-xl text-on-secondary-container">
-                <TrendingUp className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="block font-display font-extrabold text-lg text-primary">98.4%</span>
-                <span className="block text-[10px] font-mono text-outline font-bold uppercase">Optimal Surface Rating</span>
-              </div>
-            </div>
-          </div>
+        {/* Slide Indicators */}
+        <div className="absolute bottom-6 right-6 z-30 hidden md:flex gap-2 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+          {heroSlides.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentSlide(idx)}
+              className={`h-2 rounded-full transition-all cursor-pointer ${
+                idx === currentSlide ? 'w-10 bg-secondary' : 'w-2 bg-white/50 hover:bg-white'
+              }`}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
+          ))}
         </div>
       </section>
 
@@ -241,7 +324,7 @@ export default function LandingPage({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {featuredFacilities.map((facility) => (
+          {facilities.slice(0, 3).map((facility) => (
             <div 
               key={facility.id}
               className="bg-white rounded-2xl overflow-hidden border border-outline-variant hover:border-primary/50 hover:shadow-xl transition-all duration-300 flex flex-col group"
