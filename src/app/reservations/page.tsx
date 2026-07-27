@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ReservationsView from '../../components/ReservationsView';
+import ReservationsView from '@/components/ReservationsView';
 import Header from '../../components/Header'; 
 import { useRouter } from 'next/navigation';
 

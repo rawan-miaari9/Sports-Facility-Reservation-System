@@ -223,10 +223,7 @@ export default function SettingsView({ currentUser, onUpdateProfile }: SettingsV
                 <ShieldCheck className="h-4.5 w-4.5 text-[#006e25] shrink-0 mt-0.5" />
                 <span>All facilities correspond to physical specifications inspected and approved by Athletic Operations.</span>
               </div>
-              <div className="flex items-start gap-2">
-                <Lock className="h-4.5 w-4.5 text-primary shrink-0 mt-0.5" />
-                <span>Your personal phone and date of birth details are protected by 256-bit bank level security rules.</span>
-              </div>
+             
             </div>
           </div>
         </div>
