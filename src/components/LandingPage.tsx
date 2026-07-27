@@ -157,10 +157,6 @@ export default function LandingPage({
 
         {/* Top Header/Title Overlay */}
         <div className="relative z-20 max-w-7xl mx-auto w-full pt-6 md:pt-8 px-6 flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white border border-white/20 px-4 py-1.5 rounded-full text-xs font-bold font-mono uppercase tracking-wider shadow-lg">
-            <Sparkles className="h-4 w-4 text-secondary" />
-            Dynamic Booking Engine Live
-          </div>
           
           <h1 className="font-display font-black text-3xl sm:text-5xl md:text-6xl text-white tracking-tight mt-3 max-w-4xl drop-shadow-md">
             Access & Book <span className="text-secondary ">Elite Performance</span> Facilities
