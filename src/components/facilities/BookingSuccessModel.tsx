@@ -37,7 +37,7 @@ export function BookingSuccessModal({ reservation, onClose }: BookingSuccessModa
           </div>
           <div className="flex justify-between">
             <span className="font-bold uppercase">Status:</span>
-            <span className={`font-bold ${reservation.status === 'Scheduled' ? 'text-emerald-600' : 'text-amber-600'}`}>
+            <span className={`font-bold ${reservation.status === 'Confirmed' ? 'text-emerald-600' : 'text-amber-600'}`}>
               {reservation.status}
             </span>
           </div>
