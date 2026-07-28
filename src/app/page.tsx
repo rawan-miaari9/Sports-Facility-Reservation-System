@@ -8,10 +8,6 @@ import { useRouter } from 'next/navigation';
 export default function Home() {
   const router = useRouter();
 
-  useEffect(() => {
-    document.title = 'Athletic Hub';
-  }, []);
-
   return (
     <LandingPage
       facilities={INITIAL_FACILITIES}
