@@ -69,8 +69,8 @@ sports-facility-reservation/
 ├── public/                  # Static assets & images
 ├── src/
 │   ├── app/                 # Next.js App Router
-│   │   ├── (auth)/          # Login & Registration pages
-│   │   ├── (dashboard)/     # User & Admin protected views
+│   │   ├── auth/          # Login & Registration pages
+│   │   ├── dashboard/     # User & Admin protected views
 │   │   ├── facilities/      # Public court listings & details
 │   │   └── api/             # REST API endpoints
 │   ├── components/          # Reusable UI components & layouts
@@ -80,3 +80,16 @@ sports-facility-reservation/
 ├── .env.example             # Environment configuration template
 ├── package.json             # Scripts & project dependencies
 └── README.md                # Project documentation
+
+##ghh
+```
+🔒 Authentication & Authorization
+User Auth: Passwords are hashed using bcryptjs before persisting to MongoDB.
+
+Sessions: NextAuth.js or JWT session cookies manage authenticated user states.
+
+Middleware Guard: middleware.ts intercepts requests:
+
+Restricts /user/* routes to logged-in accounts.
+
+Restricts /admin/* routes strictly to accounts where role === 'Admin'.
