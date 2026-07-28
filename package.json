@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^9.12.1",
     "bcryptjs": "^3.0.3",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.25.0",
@@ -16,6 +17,7 @@
     "next": "16.2.11",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "stripe": "^22.3.2",
     "sweetalert": "^2.1.2",
     "sweetalert2": "^11.26.25"
   },

@@ -1,113 +1,81 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/mongodb";
+import { verifyJwtToken } from "@/lib/jwt";
 import User from "@/models/User";
+import Booking from "@/models/Booking";
 
-// GET: Fetch single user profile
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } | Promise<{ id: string }> }
-) {
+function getAdmin(request: NextRequest) {
+  const authorization = request.headers.get("authorization");
+  const token = authorization?.startsWith("Bearer ") ? authorization.slice(7) : null;
+  const payload = token ? verifyJwtToken(token) : null;
+  return payload?.role === "admin" ? payload : null;
+}
+
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const resolvedParams = await params;
-    const userId = resolvedParams.id;
-
-    if (!userId) {
-      return NextResponse.json({ message: "User ID is required." }, { status: 400 });
+    if (!getAdmin(request)) {
+      return NextResponse.json({ message: "Admin access required." }, { status: 403 });
     }
-
+    const { id } = await context.params;
     await connectDB();
-
-    const user = await User.findById(userId).select("-password").lean();
-
-    if (!user) {
-      return NextResponse.json({ message: "User not found." }, { status: 404 });
-    }
-
-    // Standardize _id to id string for React components
-    const formattedUser = {
-      ...user,
-      id: user._id.toString(),
-    };
-
-    return NextResponse.json(formattedUser, { status: 200 });
+    const user = await User.findById(id).select("-password").lean();
+    if (!user) return NextResponse.json({ message: "User not found." }, { status: 404 });
+    const reservationsCount = await Booking.countDocuments({ userId: user._id });
+    return NextResponse.json({
+      success: true,
+      data: { ...user, id: user._id.toString(), reservationsCount },
+    });
   } catch (error: any) {
-    return NextResponse.json(
-      { message: error.message || "Error fetching user details." },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: error.message || "Failed to load user." }, { status: 500 });
   }
 }
 
-// PUT: Update user profile details
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } | Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const resolvedParams = await params;
-    const userId = resolvedParams.id;
-
+    if (!getAdmin(request)) {
+      return NextResponse.json({ message: "Admin access required." }, { status: 403 });
+    }
+    const { id } = await context.params;
     const body = await request.json();
-    const { name, email, phone, phoneNumber, dateOfBirth, dob } = body;
+    const name = String(body.name || "").trim();
+    const phone = String(body.phone || "").trim();
+
+    if (name.length < 2) {
+      return NextResponse.json({ message: "Name must be at least 2 characters." }, { status: 400 });
+    }
+    if (!/^[+0-9\s-]{8,}$/.test(phone)) {
+      return NextResponse.json({ message: "Enter a valid phone number." }, { status: 400 });
+    }
 
     await connectDB();
-
-    // 1. Prevent email duplicate conflicts with other users
-    if (email) {
-      const existingUser = await User.findOne({
-        email: email.toLowerCase(),
-        _id: { $ne: userId },
-      });
-
-      if (existingUser) {
-        return NextResponse.json(
-          { message: "This email address is already in use by another account." },
-          { status: 400 }
-        );
-      }
-    }
-
-    // 2. Normalize input values
-    const phoneVal = phone !== undefined ? phone : phoneNumber;
-    const rawDob = dateOfBirth !== undefined ? dateOfBirth : dob;
-
-    const updateData: Record<string, any> = {};
-
-    if (name) updateData.name = name.trim();
-    if (email) updateData.email = email.trim().toLowerCase();
-    if (phoneVal !== undefined) updateData.phone = phoneVal;
-    if (rawDob !== undefined) updateData.dateOfBirth = rawDob;
-
-    // 3. Perform database update
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { $set: updateData },
-      { new: true, runValidators: true }
-    )
+    const user = await User.findByIdAndUpdate(id, { $set: { name, phone } }, { new: true, runValidators: true })
       .select("-password")
       .lean();
+    if (!user) return NextResponse.json({ message: "User not found." }, { status: 404 });
 
-    if (!updatedUser) {
-      return NextResponse.json({ message: "User account not found." }, { status: 404 });
-    }
-
-    const formattedUser = {
-      ...updatedUser,
-      id: updatedUser._id.toString(),
-    };
-
-    return NextResponse.json(formattedUser, { status: 200 });
+    const reservationsCount = await Booking.countDocuments({ userId: user._id });
+    return NextResponse.json({ success: true, data: { ...user, id: user._id.toString(), reservationsCount } });
   } catch (error: any) {
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { message: "Email is already registered to another account." },
-        { status: 400 }
-      );
+    return NextResponse.json({ message: error.message || "Failed to update user." }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  try {
+    const admin = getAdmin(request);
+    if (!admin) {
+      return NextResponse.json({ message: "Admin access required." }, { status: 403 });
+    }
+    const { id } = await context.params;
+    if (admin.userId === id) {
+      return NextResponse.json({ message: "You cannot delete your own account." }, { status: 400 });
     }
 
-    return NextResponse.json(
-      { message: error.message || "Failed to update user profile." },
-      { status: 500 }
-    );
+    await connectDB();
+    const deleted = await User.findByIdAndDelete(id);
+    if (!deleted) return NextResponse.json({ message: "User not found." }, { status: 404 });
+    return NextResponse.json({ success: true, message: "User deleted successfully." });
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message || "Failed to delete user." }, { status: 500 });
   }
 }

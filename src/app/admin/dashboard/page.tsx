@@ -18,6 +18,19 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+      const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+      const role = storedUser?.role || payload?.role;
+      if (role !== "admin") {
+        router.replace("/dashboard");
+        return;
+      }
+    } catch {
+      router.replace("/auth");
+      return;
+    }
+
     setIsAuthenticated(true);
     setCheckingAuth(false);
   }, [router]);
