@@ -69,8 +69,8 @@ sports-facility-reservation/
 ├── public/                  # Static assets & images
 ├── src/
 │   ├── app/                 # Next.js App Router
-│   │   ├── auth/          # Login & Registration pages
-│   │   ├── dashboard/     # User & Admin protected views
+│   │   ├── auth/            # Login & Registration pages
+│   │   ├── dashboard/       # User & Admin protected views
 │   │   ├── facilities/      # Public court listings & details
 │   │   └── api/             # REST API endpoints
 │   ├── components/          # Reusable UI components & layouts
@@ -81,7 +81,45 @@ sports-facility-reservation/
 ├── package.json             # Scripts & project dependencies
 └── README.md                # Project documentation
 
-```
+🗄️ Database Schema
+1. Users (users)
+TypeScript
+interface IUser {
+  _id: string;
+  name: string;
+  email: string;          // Unique indexed email address
+  password?: string;      // Password hashed with bcryptjs
+  role: 'User' | 'Admin'; // Role-based permission indicator
+  createdAt: Date;
+  updatedAt: Date;
+}
+2. Facilities (facilities)
+TypeScript
+interface IFacility {
+  _id: string;
+  name: string;           // e.g., "Court A - Indoor Padel"
+  sportType: string;      // e.g., "Padel", "Football", "Basketball"
+  description: string;
+  pricePerHour: number;
+  image: string;
+  isAvailable: boolean;   // Active status for bookings
+  createdAt: Date;
+  updatedAt: Date;
+}
+3. Reservations (reservations)
+TypeScript
+interface IReservation {
+  _id: string;
+  userId: ObjectId;       // Reference to Users collection
+  facilityId: ObjectId;   // Reference to Facilities collection
+  reservationDate: Date;  // Target date
+  startTime: string;      // e.g., "14:00"
+  endTime: string;        // e.g., "15:00"
+  totalPrice: number;     // Calculated rate based on duration
+  status: 'Confirmed' | 'Pending' | 'Cancelled';
+  createdAt: Date;
+  updatedAt: Date;
+}
 🔒 Authentication & Authorization
 User Auth: Passwords are hashed using bcryptjs before persisting to MongoDB.
 
@@ -97,7 +135,7 @@ Restricts /admin/* routes strictly to accounts where role === 'Admin'.
 Auth
 POST /api/auth/register — Register a new account
 
-POST /api/auth/login — Authenticate user 
+POST /api/auth/login — Authenticate user
 
 GET /api/auth/logout — Logout the user
 
@@ -119,6 +157,8 @@ POST /api/reservations — Create a new court booking
 
 🔑 Environment Variables
 Create a .env.local file in the root directory and add the following keys:
+
+Bash
 # Application Port
 PORT=3000
 
@@ -131,17 +171,23 @@ MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/sports_rese
 # NextAuth Secret & URL
 NEXTAUTH_SECRET=your_jwt_secret_key_here
 NEXTAUTH_URL=http://localhost:3000
-
 🚀 Setup & Installation
 Clone the repository:
 
+Bash
 git clone [https://github.com/your-username/sports-facility-reservation.git](https://github.com/your-username/sports-facility-reservation.git)
 cd sports-facility-reservation
+Install dependencies:
 
-Install dependencies: npm install
+Bash
+npm install
+Configure environment variables:
+Create a .env.local file and fill in your database URI and secrets.
 
-Run the development server: npm run dev
+Run the development server:
 
+Bash
+npm run dev
 Open http://localhost:3000 in your browser.
 
 🧪 Testing & Deployment
@@ -151,4 +197,5 @@ Deployment: Pre-configured for seamless deployment on Vercel. Simply link your G
 
 🔮 Future Enhancements
 [ ] Automated email/SMS booking confirmations and reminders.
+
 [ ] Support for recurring weekly or monthly league bookings.
