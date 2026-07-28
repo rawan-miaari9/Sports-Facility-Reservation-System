@@ -81,7 +81,6 @@ sports-facility-reservation/
 ├── package.json             # Scripts & project dependencies
 └── README.md                # Project documentation
 
-##ghh
 ```
 🔒 Authentication & Authorization
 User Auth: Passwords are hashed using bcryptjs before persisting to MongoDB.
