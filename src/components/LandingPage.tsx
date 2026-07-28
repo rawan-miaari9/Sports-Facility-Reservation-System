@@ -9,11 +9,16 @@ import {
   Compass, 
   Sparkles, 
   ArrowRight,
-  Zap
+  Zap,
+  Globe,
+  Share2,
+  MessageCircle,
+  Mail
 } from 'lucide-react';
 import { Facility } from '../types';
 
 interface LandingPageProps {
+  currentUser?: any;
   onGetStarted: () => void;
   onLoginClick: () => void;
   facilities: Facility[];
@@ -21,6 +26,7 @@ interface LandingPageProps {
 }
 
 export default function LandingPage({ 
+  currentUser,
   onGetStarted, 
   onLoginClick, 
   facilities,
@@ -29,6 +35,24 @@ export default function LandingPage({
   const [selectedSport, setSelectedSport] = useState('All');
   const [searchDate, setSearchDate] = useState('');
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Keep track of active user from props or fallback to local storage
+  const [activeUser, setActiveUser] = useState(currentUser);
+
+  useEffect(() => {
+    if (currentUser) {
+      setActiveUser(currentUser);
+    } else {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        try {
+          setActiveUser(JSON.parse(savedUser));
+        } catch (e) {
+          // ignore parsing error
+        }
+      }
+    }
+  }, [currentUser]);
 
   // Verified, reliable sports image URLs without swimming, using direct static Unsplash assets
   const heroSlides = [
@@ -118,19 +142,15 @@ export default function LandingPage({
           </nav>
 
           <div className="flex items-center gap-4">
-            <button 
-              onClick={onLoginClick}
-              className="px-4 py-2 text-sm font-semibold text-primary hover:text-primary-container transition-colors rounded-xl hover:bg-surface-container cursor-pointer"
-            >
-              Sign In
-            </button>
-            <button 
-              onClick={onGetStarted}
-              className="px-5 py-2 text-sm font-bold text-white bg-primary hover:bg-primary-container rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 group cursor-pointer"
-            >
-              Book Premium Slot
-              <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </button>
+            {/* Show Sign In ONLY if there is no active user logged in */}
+            {!activeUser && (
+              <button 
+                onClick={onLoginClick}
+                className="px-4 py-2 text-sm font-semibold text-primary hover:text-primary-container transition-colors rounded-xl hover:bg-surface-container cursor-pointer"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -201,13 +221,13 @@ export default function LandingPage({
                   }}
                   className="bg-primary hover:bg-primary-container text-white px-6 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer shadow-xl flex items-center gap-2"
                 >
-                  Book Arena Now
+                  View Arena
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
             </div>
 
-            {/* Quick Search Panel */}
+            {/* Quick Search Panel
             <div className="bg-white/95 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-white/20 flex flex-col sm:flex-row gap-3 items-center w-full lg:w-auto">
               <div className="w-full sm:w-40 flex flex-col gap-1 px-1">
                 <label className="text-[10px] font-mono uppercase tracking-wider text-outline font-bold text-left">Sport</label>
@@ -241,7 +261,7 @@ export default function LandingPage({
                 Search
                 <ArrowRight className="h-4 w-4" />
               </button>
-            </div>
+            </div> */}
 
           </div>
         </div>
@@ -432,41 +452,108 @@ export default function LandingPage({
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#0b1320] text-white py-16 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 border-b border-white/10 pb-12">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary-container text-white p-2.5 rounded-xl flex items-center justify-center">
-              <Activity className="h-6 w-6" />
-            </div>
-            <div>
-              <span className="font-display font-black text-xl tracking-wider uppercase text-white">
-                Athletic<span className="text-secondary-container">Hub</span>
-              </span>
-              <span className="block text-[9px] font-mono tracking-widest text-white/40 uppercase font-bold">
-                Elite Performance Facility
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-8 text-sm text-white/70">
-            <a href="#facilities" className="hover:text-white transition-colors">Arenas</a>
-            <a href="#why-us" className="hover:text-white transition-colors">Pillars</a>
-            <a href="#metrics" className="hover:text-white transition-colors">Stats</a>
-          </div>
-
-          <button 
-            onClick={onGetStarted}
-            className="bg-primary hover:bg-primary-container text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer"
-          >
-            Start Performance Booking
-          </button>
+      <footer className="bg-[#0b1320] text-white pt-16 pb-12 px-6 border-t border-white/10">
+  <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 pb-16 border-b border-white/10">
+    
+    {/* Column 1 & 2: Brand Info & Description */}
+    <div className="lg:col-span-2 space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="bg-primary-container text-white p-2.5 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+          <Activity className="h-6 w-6" />
         </div>
-
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-white/40 mt-8 gap-4 font-mono">
-          <span>&copy; 2026 AthleticHub Inc. All rights reserved.</span>
-          <span>Certified Standard Courts | Kinetic Grid Design System v4.1</span>
+        <div>
+          <span className="font-display font-black text-xl tracking-wider uppercase text-white">
+            Athletic<span className="text-secondary-container">Hub</span>
+          </span>
+          <span className="block text-[9px] font-mono tracking-widest text-white/40 uppercase font-bold">
+            Elite Performance Facility
+          </span>
         </div>
-      </footer>
+      </div>
+      <p className="text-sm text-white/60 max-w-sm leading-relaxed">
+        Next-generation athletic infrastructure, smart scheduling, and professional-grade arenas engineered for peak performance.
+      </p>
+
+      {/* Social / Community Links */}
+      {/* Social Media Links */}
+      <div className="flex items-center gap-3 pt-2">
+        {/* Instagram */}
+        <a href="https://instagram.com" target="_blank" rel="noreferrer" title="Instagram" className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all hover:scale-105">
+          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+          </svg>
+        </a>
+
+        {/* X / Twitter */}
+        <a href="https://twitter.com" target="_blank" rel="noreferrer" title="Twitter / X" className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all hover:scale-105">
+          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </a>
+
+        {/* LinkedIn */}
+        <a href="https://linkedin.com" target="_blank" rel="noreferrer" title="LinkedIn" className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all hover:scale-105">
+          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+          </svg>
+        </a>
+
+        {/* Facebook */}
+        <a href="https://facebook.com" target="_blank" rel="noreferrer" title="Facebook" className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all hover:scale-105">
+          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    {/* Column 3: Quick Navigation */}
+    <div className="space-y-4">
+      <h3 className="text-xs font-mono tracking-widest text-white/40 uppercase font-bold">Navigation</h3>
+      <ul className="space-y-2.5 text-sm text-white/70">
+        <li><a href="#facilities" className="hover:text-white transition-colors">Arenas & Courts</a></li>
+        <li><a href="#why-us" className="hover:text-white transition-colors">Core Pillars</a></li>
+        <li><a href="#metrics" className="hover:text-white transition-colors">Live Stats</a></li>
+        <li><a href="#facilities" className="hover:text-white transition-colors">Book a Session</a></li>
+      </ul>
+    </div>
+
+    {/* Column 4: Support & Legal */}
+    <div className="space-y-4">
+      <h3 className="text-xs font-mono tracking-widest text-white/40 uppercase font-bold">Support & Legal</h3>
+      <ul className="space-y-2.5 text-sm text-white/70">
+        <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+        <li><a href="#" className="hover:text-white transition-colors">Facility Guidelines</a></li>
+        <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+        <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+      </ul>
+    </div>
+<div className="space-y-4">
+      <h3 className="text-xs font-mono tracking-widest text-white/40 uppercase font-bold">Stay Updated</h3>
+      <p className="text-xs text-white/60">Get early access to peak-hour slots and facility upgrades.</p>
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-2">
+        <input 
+          type="email" 
+          placeholder="Enter your email" 
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-primary transition"
+        />
+        <button 
+          type="submit" 
+          className="w-full bg-primary hover:bg-primary-container text-white font-semibold text-xs tracking-wider uppercase py-2.5 rounded-xl transition shadow-md cursor-pointer"
+        >
+          Subscribe
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  {/* Bottom Copyright & System Info */}
+  <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-white/40 mt-8 gap-4 font-mono">
+    <span>&copy; 2026 AthleticHub Inc. All rights reserved.</span>
+    <span>Certified Standard Courts | Kinetic Grid Design System v4.1</span>
+  </div>
+</footer>
     </div>
   );
 }
