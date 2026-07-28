@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       price: body.price,
       paymentMethod: body.paymentMethod,
       equipment: body.equipment || [],
-      status: "Pending",
+      status: body.paymentMethod === "Card" ? "Confirmed" : "Pending",
     });
 
     return NextResponse.json({ success: true, data: booking }, { status: 201 });
