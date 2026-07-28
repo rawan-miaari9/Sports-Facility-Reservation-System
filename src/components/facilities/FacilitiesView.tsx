@@ -6,6 +6,7 @@ import {
   fetchFacilities,
   fetchReservations,
   createReservation,
+  createCheckoutSession,
 } from '@/services/facilityService';
 
 import { FacilityFilterBar } from './FacilityFilterBar';
@@ -97,7 +98,7 @@ export default function FacilitiesView({
 }: FacilitiesViewProps) {
   const isAdmin = currentUser?.role === 'admin';
   console.log("Current user:", currentUser);
-console.log("isAdmin:", isAdmin); 
+  console.log("isAdmin:", isAdmin);
   const getTodayString = () => new Date().toISOString().split('T')[0];
 
   const [facilities, setFacilities] = useState<Facility[]>([]);
@@ -166,7 +167,7 @@ console.log("isAdmin:", isAdmin);
     setSelectedEquipment([]);
     setPaymentMethod('Card');
 
-    setBookingType("registered");
+    setBookingType("guest");
 
     setGuestName("");
     setGuestPhone("");
@@ -224,13 +225,13 @@ console.log("isAdmin:", isAdmin);
     try {
       setIsSubmitting(true);
 
-      const result = await createReservation({
+      const reservationData = {
         facilityId: selectedFacility._id || selectedFacility.id,
-
-        bookingType,
-
-        userId: bookingType === "registered" ? currentUser.id : undefined,
-
+        bookingType: isAdmin ? "guest" : bookingType,
+        userId:
+          !isAdmin && bookingType === "registered"
+            ? currentUser.id
+            : undefined,
         guestName: bookingType === "guest" ? guestName : undefined,
         guestPhone: bookingType === "guest" ? guestPhone : undefined,
         guestEmail: bookingType === "guest" && guestEmail.trim()
@@ -238,13 +239,19 @@ console.log("isAdmin:", isAdmin);
           : undefined,
         date: bookingDate,
         timeSlot: selectedSlot,
-
         price: basePrice + equipmentCost,
-
         paymentMethod,
-
         equipment: selectedEquipment,
-      });
+      };
+
+      if (paymentMethod === "Card") {
+        sessionStorage.setItem("pendingStripeReservation", JSON.stringify(reservationData));
+        const checkoutUrl = await createCheckoutSession(reservationData);
+        window.location.href = checkoutUrl;
+        return;
+      }
+
+      const result = await createReservation(reservationData);
 
       if (result.success) {
         setLastCreatedReservation({
@@ -261,7 +268,7 @@ console.log("isAdmin:", isAdmin);
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <div className="flex-1 flex overflow-hidden bg-background relative h-full">
       <div className="flex-1 overflow-y-auto px-8 py-8 space-y-6 custom-scrollbar">

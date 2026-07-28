@@ -146,28 +146,8 @@ export function BookingDrawer({
                 Booking Type
               </label>
 
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setBookingType("registered")}
-                  className={`flex-1 p-3 rounded-xl border ${bookingType === "registered"
-                    ? "bg-primary text-white border-primary"
-                    : "border-outline-variant"
-                    }`}
-                >
-                  Registered User
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setBookingType("guest")}
-                  className={`flex-1 p-3 rounded-xl border ${bookingType === "guest"
-                    ? "bg-primary text-white border-primary"
-                    : "border-outline-variant"
-                    }`}
-                >
-                  Guest
-                </button>
+              <div className="p-3 rounded-xl border border-outline-variant bg-surface-container-low">
+                Guest Booking
               </div>
             </div>
           )}
@@ -258,20 +238,7 @@ export function BookingDrawer({
               <span className="bg-primary text-white w-4 h-4 text-[10px] rounded-full flex items-center justify-center font-bold">3</span>
               Select Payment Option
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('Card')}
-                className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${paymentMethod === 'Card'
-                  ? 'border-primary bg-primary/5 text-primary font-bold'
-                  : 'border-outline-variant text-on-surface-variant'
-                  }`}
-              >
-                <CreditCard className="h-5 w-5" />
-                <span className="text-xs">Credit Card</span>
-                <span className="text-[9px] text-emerald-600 font-mono">Instant Confirmation</span>
-              </button>
-
+            <div className="grid grid-cols-1 gap-3">
               <button
                 type="button"
                 onClick={() => setPaymentMethod('Cash')}

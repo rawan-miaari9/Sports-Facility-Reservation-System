@@ -6,6 +6,7 @@ import {
     fetchFacilities,
     fetchReservations,
     createReservation,
+    createCheckoutSession,
 } from '@/services/facilityService';
 
 import { FacilityFilterBar } from './FacilityFilterBar';
@@ -207,20 +208,25 @@ export default function FacilitiesView({
         try {
             setIsSubmitting(true);
 
-            const result = await createReservation({
+            const reservationData = {
                 facilityId: selectedFacility._id || selectedFacility.id,
-                bookingType: "registered",
-
+                bookingType: "registered" as const,
                 userId: loggedInUser!.id,
                 date: bookingDate,
                 timeSlot: selectedSlot,
-
                 price: basePrice + equipmentCost,
-
                 paymentMethod,
-
                 equipment: selectedEquipment,
-            });
+            };
+
+            if (paymentMethod === "Card") {
+                sessionStorage.setItem("pendingStripeReservation", JSON.stringify(reservationData));
+                const checkoutUrl = await createCheckoutSession(reservationData);
+                window.location.href = checkoutUrl;
+                return;
+            }
+
+            const result = await createReservation(reservationData);
 
             if (result.success) {
                 setLastCreatedReservation({
