@@ -92,3 +92,63 @@ Middleware Guard: middleware.ts intercepts requests:
 Restricts /user/* routes to logged-in accounts.
 
 Restricts /admin/* routes strictly to accounts where role === 'Admin'.
+
+🌐 API Endpoints
+Auth
+POST /api/auth/register — Register a new account
+
+POST /api/auth/login — Authenticate user 
+
+GET /api/auth/logout — Logout the user
+
+Facilities
+GET /api/facilities — Retrieve all active facilities
+
+GET /api/facilities/[id] — Retrieve single facility details
+
+POST /api/facilities — Add a new facility (Admin only)
+
+PUT /api/facilities/[id] — Update facility information (Admin only)
+
+DELETE /api/facilities/[id] — Delete facility (Admin only)
+
+Reservations
+GET /api/reservations — Retrieve reservations (Filtered by user or all for Admin)
+
+POST /api/reservations — Create a new court booking
+
+🔑 Environment Variables
+Create a .env.local file in the root directory and add the following keys:
+# Application Port
+PORT=3000
+
+# App Base URL
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# MongoDB Atlas / Local Connection String
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/sports_reservation?retryWrites=true&w=majority
+
+# NextAuth Secret & URL
+NEXTAUTH_SECRET=your_jwt_secret_key_here
+NEXTAUTH_URL=http://localhost:3000
+
+🚀 Setup & Installation
+Clone the repository:
+
+git clone [https://github.com/your-username/sports-facility-reservation.git](https://github.com/your-username/sports-facility-reservation.git)
+cd sports-facility-reservation
+
+Install dependencies: npm install
+
+Run the development server: npm run dev
+
+Open http://localhost:3000 in your browser.
+
+🧪 Testing & Deployment
+API Testing: Endpoints can be tested using Postman.
+
+Deployment: Pre-configured for seamless deployment on Vercel. Simply link your GitHub repository, supply the environment variables in the project settings, and deploy.
+
+🔮 Future Enhancements
+[ ] Automated email/SMS booking confirmations and reminders.
+[ ] Support for recurring weekly or monthly league bookings.
