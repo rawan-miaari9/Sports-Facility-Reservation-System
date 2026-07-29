@@ -13,6 +13,7 @@ import ManageFacilityView from '@/components/ManageFacilityView/ManageFacilityVi
 import SettingsView from '@/components/AdminSettingView/SettingsView';
 import { User } from '../../types';
 import { AlertCircle } from 'lucide-react';
+import UserManagementView from '@/components/UserManagementView';
 import { useRouter } from 'next/navigation';
 
 // Helper function to safely decode JWT without external packages
@@ -372,6 +373,9 @@ export default function AdminMainDashboard() {
             onDeleteReservation={handleDeleteReservation}
           />
         );
+
+      case 'users':
+        return <UserManagementView currentUser={currentUser} />;
 
       case 'settings':
         return (
